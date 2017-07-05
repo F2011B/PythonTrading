@@ -28,8 +28,6 @@ insertModule('DataProviderAccess')
 import OZ
 
 
-
-
 cmd_folder = os.path.realpath(os.path.abspath(os.path.split(inspect.getfile(inspect.currentframe()))[0]))
 if cmd_folder not in sys.path:
     sys.path.insert(0, cmd_folder)
@@ -193,6 +191,10 @@ class MyTestCase(unittest.TestCase):
         print(DFFrames.reset_index().to_json())
         #print(DFFrames.to_json())
         self.assertTrue(False)
+
+    def refresh_DataBase(self):
+        DFFrames = RiakDataBaseAccess.updateOZRiak(['WTICO_USD'])
+        print(DFFrames)
 
 
 

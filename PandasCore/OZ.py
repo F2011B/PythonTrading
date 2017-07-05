@@ -85,7 +85,7 @@ def calc_oz_series_pandas(symbol, numWeeksBack=20, averageTf='W'):
                   '3M':(numWeeksBack*15),
                   'Q':(numWeeksBack*15),
                   'M':(numWeeksBack*4)}
-
+    print(Constants.StockHDF)
     store = pd.HDFStore(Constants.StockHDF)
     symbolKey = symbol + '_'+ averageTf
 
@@ -186,6 +186,9 @@ class MyTestCase(unittest.TestCase):
         #DF=getDataFromStartDate(startDate, 'WTICO_USD', 'H1', 0)
         print('test')
 
-        DF = generate_overlays_oz_pandas('1h', 'WTICO_USD', numWeeksBack=20).dropna()
+        DF = generate_overlays_oz_pandas('1h', 'CORN_USD', numWeeksBack=20).dropna()
         print(DF)
+    def test_HDF_Path(self):
+        print(Constants.home)
+        print(Constants.Database)
 

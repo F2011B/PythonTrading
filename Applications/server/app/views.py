@@ -19,7 +19,7 @@ def insertModule(ModuleFolder):
         sys.path.insert(0, cmd_subfolder)
 
 insertModule('DatabaseAccess')
-import RiakDataBaseAccess as RDB
+insertModule(  )
 
 @app.route('/intraDay')
 def get_intraday_chart():

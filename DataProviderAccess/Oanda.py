@@ -32,6 +32,8 @@ insertModule('Constants')
 insertModule('DataProviderAccess')
 insertModule('Passwords')
 import Passwords
+import Constants
+#import Constants.Constants as Constants
 
 
 OANDA= oandapy.API(environment="live", access_token=Passwords.accessTokenOanda)
@@ -90,7 +92,7 @@ def getDataFromStartDate(startDate,instrument='WTICO_USD',gran='M15',dayDiff=5):
     Today=datetime.datetime.now()
     DFList=list()
     while condition:
-        print(StartDateString)
+        #print(StartDateString)
         try:
             DF=pd.DataFrame(OANDA.get_history(instrument=instrument,granularity=gran,start=StartDateString,count=5000)['candles'])
             if not 'time' in DF.keys():
@@ -100,6 +102,7 @@ def getDataFromStartDate(startDate,instrument='WTICO_USD',gran='M15',dayDiff=5):
             lastDate = startDate
             startDate = DF['DateTime'][len(DF['DateTime']) - 1].to_datetime()
             Diff = Today - startDate
+            #print(Diff)
             # print(startDate)
             newDay = "%02d" % (startDate.day)
             newHour = "%02d" % (startDate.hour,)
@@ -111,22 +114,18 @@ def getDataFromStartDate(startDate,instrument='WTICO_USD',gran='M15',dayDiff=5):
             DF.set_index('DateTime', inplace=True)
             DFList.append(DF)
             condition = not (Diff.days <= dayDiff)
+
             Result = DFList[0]
             for i in range(1, len(DFList)):
                 Result = Result.append(DFList[i])
-            return Result
         except:
             print(StartDateString)
             print(DFList)
             condition=False
             return None
+    return Result
 
 
-
-        #print('Appending')
-        
-
-        #condition=False
         
 
 
@@ -146,7 +145,7 @@ def calc_start_date(Today, daysBack):
     return datetime.datetime(startYear, startMonth, startDay, 0,0,0)   
     
 def ReadOrUpdataDB(symbol,startDate, endDate, gran) :
-    StoreFilePath='/home/lc1bfrbl/Oanda.hdf'
+    StoreFilePath=Constants.DatabaseOanda
     store=pd.HDFStore(StoreFilePath)
     resample=False
     granularity=gran
@@ -169,37 +168,28 @@ def ReadOrUpdataDB(symbol,startDate, endDate, gran) :
         Result['Low'] = Result['lowAsk']
         Result['Open'] = Result['openAsk']
         Result['Volume'] = Result['volume']
+        Result['LastUpdated']=datetime.datetime.now()
 
         Result.to_hdf(StoreFilePath,symbolKey)
         print('Will write Oanda.hdf : '+symbolKey)
         return Result
 
-        
-    # if (endDate.weekday() == 5) or (endDate.weekday() == 6):
-    #     ResultDF=store[symbolKey]
-    #     return ResultDF
+    NeedUpdate=True
+    if ('LastUpdated' in store[symbolKey].keys()):
+        TimeCheck=(store[symbolKey]['LastUpdated'].iloc[-1]+updateFrequency).time() <=endDate.time()
+        print((store[symbolKey].index.max()+updateFrequency).time())
+        print(endDate.time())
+        print((store[symbolKey]['LastUpdated'].iloc[-1]+updateFrequency).time())
+        DateCheck=store[symbolKey].index.max().date()<=endDate.date()
+        NeedUpdate=DateCheck and TimeCheck
 
-    # print((store[symbolKey].index.max().date()))
-    # print(endDate.date())
-
-    # print(store[symbolKey].index.max().date() < endDate.date() )
-    # #print(store[symbolKey].index.min().date() > startDate.date())
-    print('MaxDate')
-
-
-
-    TimeCheck=(store[symbolKey].index.max()+updateFrequency).time() <=endDate.time()
-    print((store[symbolKey].index.max()+updateFrequency).time())
-    print(endDate.time())
-    DateCheck=store[symbolKey].index.max().date()<=endDate.date()
-    NeedUpdate=DateCheck and TimeCheck
     print(NeedUpdate)
-    if NeedUpdate: #or (store[symbolKey].index.min().date() > startDate.date() )) :
+    if NeedUpdate:
         DiffDays=0
         ResultDF = getDataFromStartDate(startDate,symbol,granularity,DiffDays)
         if ResultDF is not None :
             store[symbolKey]=store[symbolKey].combine_first(ResultDF)
-            store.flush()
+            #store.flush()
 
     Result=store[symbolKey]
     store.close()
@@ -208,7 +198,9 @@ def ReadOrUpdataDB(symbol,startDate, endDate, gran) :
     Result['Low'] = Result['lowAsk']
     Result['Open'] = Result['openAsk']
     Result['Volume'] = Result['volume']
+    Result['LastUpdated']=datetime.datetime.now()
     Result.to_hdf(StoreFilePath,symbolKey)
+    print(Result.keys())
     print('Will write Oanda.hdf : ' + symbolKey)
     if resample:
         return resample_DOHLCV_pandas(Result, gran)
@@ -277,13 +269,14 @@ class MyTestCase(unittest.TestCase):
         print(endDate)
         startDate = endDate - datetime.timedelta(weeks=200)
         print(startDate)
-        #DF=getDataFromStartDate(startDate,instrument='WTICO_USD',gran='H1')
+        #DF=getDataFromStartDate(startDate,instrument='CORN_USD',gran='H1')
         print('test')
 
         #DF= getDataFromStartDate(startDate, 'WTICO_USD', gran='H1')
         DF = ReadOrUpdataDB('WTICO_USD',startDate, endDate, 'H1')#('1h', 'WTICO_USD', numWeeksBack=200).dropna()
        # DF=resample_DOHLCV_pandas(DF, 'W')
         print(DF)
+        #print(DF['LastUpdated'].iloc[-1])
 
 
     def test_get_weekly_DOHLCV_pandas(self):

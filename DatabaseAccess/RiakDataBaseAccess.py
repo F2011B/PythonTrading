@@ -96,17 +96,17 @@ def updateOZRiak(symbolList):
     for symbol in symbolList:
         print(symbol)
         DF=refresh_SymbolFrame(symbol)
-        DF.to_hdf('/home/lc1bfrbl/Oanda.hdf',symbol+'_OZ')
+        DF.to_hdf(Constants.DatabaseOanda,symbol+'_OZ')
         #Converted=convertToList(DF,symbol)
         #print(Converted[0:3])
         #table_object = client.table(write_table).new(Converted)
         #print(table_object.rows)
         #result = table_object.store()
-        newAllDF=newAllDF.append(DF)
+        #newAllDF=newAllDF.append(DF)
         print('After referesh_SymbolFrame: '+symbol)
     #newAllDF.reset_index(inplace=True)
     #newAllDF.rename(columns={'index':'DateTime'},inplace=True)
-    return newAllDF
+    #return newAllDF
 
 def convertToList(DF,SymbolName="HD"):
     newList=list()
