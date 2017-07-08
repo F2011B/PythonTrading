@@ -28,6 +28,7 @@ def UsingDayGroupAsProxyDate(DF):
 
 def AddAverages(DF):
 
+    DF['MO'] = DF['Open']
     DF['DHi'] = DF['High'] - DF['Open']
     # print(newDF['DHi'])
     DF['DLo'] = DF['Low'] - DF['Open']
@@ -35,6 +36,17 @@ def AddAverages(DF):
     DF['MHi'] = DF['Open'] + DF['DHi'].rolling(window=10).mean().shift(1)
     return DF
 
+def resampleToHourlyFrame(DF,TargetDF):
+    DF.reset_index()
+    testDF = DF.reset_index()
+    testDF = testDF.append(testDF.tail(1))
+    testDF = testDF.reset_index()
+    testDF.set_value(len(testDF) - 1, 'DateTime',
+                     testDF.iloc[len(testDF) - 1].DateTime + testDF.DateTime.diff().iloc[-3])
+    testDF[['MO', 'MLo', 'MHi']] = testDF[['MO', 'MLo', 'MHi']].shift(1)
+    testDF.set_index('DateTime', inplace=True)
+    resampled = testDF.resample('60min').bfill()
+    return pd.concat([TargetDF, resampled[['MO', 'MLo', 'MHi']]], axis=1, join_axes=[TargetDF.index])
 
 def TaylorCycle(DF):
     ohlc_dict = {
@@ -54,7 +66,23 @@ def TaylorCycle(DF):
 
     newDF = count3DayGroups(newDF)
     newDF=UsingDayGroupAsProxyDate(newDF)
-    newDF = newDF.shift(1, freq='3D').resample('60min').bfill()
-    newDF = pd.concat([DF, newDF['MO'], newDF['MLo'], newDF['MHi']], axis=1, join_axes=[DF.index])
+    newDF=AddAverages(newDF)
 
-    return newDF
+    return resampleToHourlyFrame(newDF,DF)
+
+
+
+
+def main():
+    DF = pd.read_hdf('/home/lc1bfrbl/Database/Oanda.hdf', 'WTICO_USD_H1')
+    TTT=TaylorCycle(DF)
+    Index = (TTT.index.year == 2017) & (TTT.index.month == 6)
+    TTT[Index].MO.plot()
+    TTT[Index].MLo.plot()
+    TTT[Index].MHi.plot()
+    TTT[Index].High.plot()
+    TTT[Index].Low.plot()
+
+
+if __name__ == "__main__":
+    main()
