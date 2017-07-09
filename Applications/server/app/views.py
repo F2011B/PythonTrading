@@ -4,6 +4,7 @@ import sys
 import os
 import inspect
 import datetime
+import pandas as pd
 
 cmd_folder = os.path.realpath(os.path.abspath(os.path.split(inspect.getfile(inspect.currentframe()))[0]))
 if cmd_folder not in sys.path:
@@ -19,7 +20,9 @@ def insertModule(ModuleFolder):
         sys.path.insert(0, cmd_subfolder)
 
 insertModule('DatabaseAccess')
-insertModule(  )
+insertModule('Constants')
+import Constants
+
 
 @app.route('/intraDay')
 def get_intraday_chart():
@@ -39,7 +42,16 @@ def get_intraday_chart():
     resp.headers["Content-Type"] = "text/csv"
     return resp #OZW.to_csv(index_label='Date')
 
+@app.route('/taylor')
+def get_taylor_table():
+    store = pd.HDFStore(Constants.DatabaseTaylor)
+    StoredDF = pd.DataFrame()
+    for key in store.keys():
+        DF = store[key].tail(1)
+        DF['SymbolID'] = key
+        StoredDF = pd.concat([StoredDF, DF[['SymbolID', 'MO', 'MLo', 'MHi']]], axis=0)
 
+    return StoredDF.to_html()
 
 
 

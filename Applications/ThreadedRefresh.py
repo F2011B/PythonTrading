@@ -4,6 +4,7 @@ import threading
 import sys
 import os
 import inspect
+import pandas as pd
 import time
 
 cmd_folder = os.path.realpath(os.path.abspath(os.path.split(inspect.getfile(inspect.currentframe()))[0]))
@@ -49,7 +50,7 @@ def printit():
         DF =  Oanda.get_intraday_pandas_dback(element,3000,'H1')
         TTTDF=TaylorCycle.CalcTaylorCycle(DF)
         TTTDF.to_hdf(Constants.DatabaseTaylor,element)
-        time.sleep(100)
+        time.sleep(5)
 
 
 printit()

@@ -36,7 +36,7 @@ def AddAverages(DF):
     DF['MHi'] = DF['Open'] + DF['DHi'].rolling(window=10).mean().shift(1)
     return DF
 
-def resampleToHourlyFrame(DF,TargetDF):
+def resampleToHourlyFrame(DF,TargetDF,TaylorDF):
     DF.reset_index()
     testDF = DF.reset_index()
     testDF = testDF.append(testDF.tail(1))
@@ -46,7 +46,14 @@ def resampleToHourlyFrame(DF,TargetDF):
     testDF[['MO', 'MLo', 'MHi']] = testDF[['MO', 'MLo', 'MHi']].shift(1)
     testDF.set_index('DateTime', inplace=True)
     resampled = testDF.resample('60min').bfill()
-    return pd.concat([TargetDF, resampled[['MO', 'MLo', 'MHi']]], axis=1, join_axes=[TargetDF.index])
+    ResultDF=pd.concat([TargetDF, resampled[['MO', 'MLo', 'MHi']]], axis=1, join_axes=[TargetDF.index])
+    TaylorDF['Date']=pd.to_datetime(TaylorDF.index.date)
+    ResultDF['Date']=pd.to_datetime(ResultDF.index.date)
+    TaylorDF = TaylorDF.reset_index().set_index('Date')
+    ResultDF = ResultDF.reset_index().set_index('Date')
+    ResultDF['TaylorDay']=TaylorDF['DayNum']
+    ResultDF = ResultDF.reset_index().set_index('DateTime')
+    return ResultDF
 
 def CalcTaylorCycle(DF):
     ohlc_dict = {
@@ -60,15 +67,15 @@ def CalcTaylorCycle(DF):
     }
     ResampledData = DF[['Open', 'High', 'Low', 'Close']].resample('1D', closed='left', label='left', how=ohlc_dict)
 
-    newDF = ResampledData.dropna()
-    newDF['Day'] = 1
-    newDF['DayNum'] = newDF.Day.cumsum().mod(3)
+    TaylorDF = ResampledData.dropna()
+    TaylorDF['Day'] = 1
+    TaylorDF['DayNum'] = TaylorDF.Day.cumsum().mod(3)
 
-    newDF = count3DayGroups(newDF)
+    newDF = count3DayGroups(TaylorDF)
     newDF=UsingDayGroupAsProxyDate(newDF)
     newDF=AddAverages(newDF)
 
-    return resampleToHourlyFrame(newDF,DF)
+    return resampleToHourlyFrame(newDF,DF,TaylorDF)
 
 
 
