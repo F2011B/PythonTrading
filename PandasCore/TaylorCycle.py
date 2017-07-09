@@ -48,7 +48,7 @@ def resampleToHourlyFrame(DF,TargetDF):
     resampled = testDF.resample('60min').bfill()
     return pd.concat([TargetDF, resampled[['MO', 'MLo', 'MHi']]], axis=1, join_axes=[TargetDF.index])
 
-def TaylorCycle(DF):
+def CalcTaylorCycle(DF):
     ohlc_dict = {
         'Open': 'first',
         'High': 'max',
@@ -75,7 +75,7 @@ def TaylorCycle(DF):
 
 def main():
     DF = pd.read_hdf('/home/lc1bfrbl/Database/Oanda.hdf', 'WTICO_USD_H1')
-    TTT=TaylorCycle(DF)
+    TTT=CalcTaylorCycle(DF)
     Index = (TTT.index.year == 2017) & (TTT.index.month == 6)
     TTT[Index].MO.plot()
     TTT[Index].MLo.plot()

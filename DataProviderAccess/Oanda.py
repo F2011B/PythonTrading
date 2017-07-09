@@ -10,6 +10,7 @@ import Constants as Constants
 import os
 import sys
 import inspect
+import numpy as np
 
 import unittest
 from enum import Enum
@@ -88,6 +89,8 @@ def convertDateTimeStr(input):
     
 def getDataFromStartDate(startDate,instrument='WTICO_USD',gran='M15',dayDiff=5):
     condition=True
+    print(instrument)
+    print(startDate)
     StartDateString=str(startDate.year)+'-'+ '{:02d}'.format(startDate.month)+'-'+'{:02d}'.format(startDate.day)
     Today=datetime.datetime.now()
     DFList=list()
@@ -186,6 +189,10 @@ def ReadOrUpdataDB(symbol,startDate, endDate, gran) :
     print(NeedUpdate)
     if NeedUpdate:
         DiffDays=0
+        Date=store[symbolKey].tail(1).index.values[0]
+        ts = (Date - np.datetime64('1970-01-01T00:00:00Z')) / np.timedelta64(1, 's')
+        startDate=datetime.datetime.utcfromtimestamp(ts).date()
+
         ResultDF = getDataFromStartDate(startDate,symbol,granularity,DiffDays)
         if ResultDF is not None :
             store[symbolKey]=store[symbolKey].combine_first(ResultDF)

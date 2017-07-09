@@ -20,8 +20,8 @@ def insertModule(ModuleFolder):
 insertModule('PandasCore')
 insertModule('Constants')
 insertModule('DataProviderAccess')
-insertModule('Oanda')
 import Oanda
+import TaylorCycle
 
 import OZ
 
@@ -46,7 +46,10 @@ def printit():
     threading.Timer(600.0, printit).start()
 
     for element in symbolList:
-        DF =  Oanda.get_weekly_DOHLCV_pandas(600, element)
+        DF =  Oanda.get_intraday_pandas_dback(element,3000,'H1')
+        TTTDF=TaylorCycle.CalcTaylorCycle(DF)
+        TTTDF.to_hdf(Constants.DatabaseTaylor,element)
+        time.sleep(100)
 
 
 printit()
