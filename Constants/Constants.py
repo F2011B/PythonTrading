@@ -13,6 +13,9 @@ SymbolsHDF=os.path.join(Database,'symbols.hdf')
 StockHDF=os.path.join(Database,'Stock.hdf')
 
 
+LoggingUpdateHDF=os.path.join(home,'log/ThreadedRefresh.log')
+
+
 OZRefreshDay=WeekDays['Monday']
 RiakServer='81.169.177.112'
 RiakPort= 8098
