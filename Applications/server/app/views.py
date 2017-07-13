@@ -5,6 +5,8 @@ import os
 import inspect
 import datetime
 import pandas as pd
+import logging
+from logging.handlers import RotatingFileHandler
 
 cmd_folder = os.path.realpath(os.path.abspath(os.path.split(inspect.getfile(inspect.currentframe()))[0]))
 if cmd_folder not in sys.path:
@@ -22,6 +24,18 @@ def insertModule(ModuleFolder):
 insertModule('DatabaseAccess')
 insertModule('Constants')
 import Constants
+
+log_formatter = logging.Formatter('%(asctime)s %(levelname)s %(funcName)s(%(lineno)d) %(message)s')
+
+logFile = Constants.LoggingFlask
+
+my_handler = RotatingFileHandler(logFile, mode='a', maxBytes=5*1024*1024,
+                                 backupCount=2, encoding=None, delay=0)
+my_handler.setFormatter(log_formatter)
+my_handler.setLevel(logging.INFO)
+app_log = logging.getLogger('root')
+app_log.setLevel(logging.INFO)
+app_log.addHandler(my_handler)
 
 
 @app.route('/intraDay')

@@ -14,6 +14,7 @@ StockHDF=os.path.join(Database,'Stock.hdf')
 
 
 LoggingUpdateHDF=os.path.join(home,'log/ThreadedRefresh.log')
+LoggingFlask=os.path.join(home,'log/Flask.log')
 
 
 OZRefreshDay=WeekDays['Monday']
