@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 import threading
 import sys
 import os
@@ -62,16 +61,14 @@ app_log.addHandler(my_handler)
 
 
 
-def printit():
-    threading.Timer(600.0, printit).start()
-
+def runUpdate():
     for element in symbolList:
         app_log.info(element)
         DF =  Oanda.get_intraday_pandas_dback(element,3000,'H1')
         TTTDF=TaylorCycle.CalcTaylorCycle(DF)
         TTTDF.to_hdf(Constants.DatabaseTaylor,element)
         app_log.info('TaylorHDF written')
-        time.sleep(5)
+        
 
 
-printit()
+runUpdate()
