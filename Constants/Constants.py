@@ -9,6 +9,7 @@ InputFolder=os.path.join(home,'/Development/Servers/restserver/Input/')
 Database=os.path.join(home,'Database')
 DatabaseOanda=os.path.join(Database,'Oanda.hdf')
 DatabaseTaylor=os.path.join(Database,'Taylor.hdf')
+DatabaseTaylorCP=os.path.join(Database,'TaylorCP.hdf')
 SymbolsHDF=os.path.join(Database,'symbols.hdf')
 StockHDF=os.path.join(Database,'Stock.hdf')
 

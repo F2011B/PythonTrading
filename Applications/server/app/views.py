@@ -58,12 +58,14 @@ def get_intraday_chart():
 
 @app.route('/taylor')
 def get_taylor_table():
-    store = pd.HDFStore(Constants.DatabaseTaylor)
+    store = pd.HDFStore(Constants.DatabaseTaylorCP)
     StoredDF = pd.DataFrame()
     for key in store.keys():
+        
         DF = store[key].tail(1)
         DF['SymbolID'] = key
         StoredDF = pd.concat([StoredDF, DF[['SymbolID', 'MO', 'MLo', 'MHi','TaylorDay']]], axis=0)
+    store.close()
 
     return StoredDF.to_html()
 
