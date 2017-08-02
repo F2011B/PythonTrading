@@ -1,5 +1,11 @@
 import datetime
 import pandas as pd
+import logging
+
+Logger=None
+
+def setLogger(logger):
+    Logger=logger
 
 
 def count3DayGroups(DF):

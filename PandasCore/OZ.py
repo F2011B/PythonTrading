@@ -30,6 +30,13 @@ insertModule('DataProviderAccess')
 import Oanda
 import Constants
 import CandleHelper
+import logging
+
+
+Logger=None
+
+def setLogger(logger):
+    Logger=logger
 
 
 

@@ -23,9 +23,11 @@ def insertModule(ModuleFolder):
 insertModule('PandasCore')
 insertModule('Constants')
 insertModule('DataProviderAccess')
+insertModule('DatabaseAccess')
 import Oanda
 import TaylorCycle
 import OZ
+import RiakDataBaseAccess as riak
 
 
 cmd_folder = os.path.realpath(os.path.abspath(os.path.split(inspect.getfile(inspect.currentframe()))[0]))
@@ -68,6 +70,9 @@ def runUpdate():
         TTTDF=TaylorCycle.CalcTaylorCycle(DF)
         TTTDF.to_hdf(Constants.DatabaseTaylor,element)
         app_log.info('TaylorHDF written')
+        riak.writeDFToTable(TTTDF,element,'OandaTTT',app_log)
+        app_log.info('End of Loop Element')
+
         
 
 

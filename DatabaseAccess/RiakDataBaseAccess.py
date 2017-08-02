@@ -23,7 +23,7 @@ import OZ
 import Constants
 import Oanda
 import IQData
-
+import logging
 
 write_table = "MyStockData"
 client = RiakClient(nodes=[{'host':Constants.RiakServer,'http_port':Constants.RiakPort}],transport_options={'ts_convert_timestamp': True})
@@ -97,16 +97,16 @@ def updateOZRiak(symbolList):
         print(symbol)
         DF=refresh_SymbolFrame(symbol)
         DF.to_hdf(Constants.DatabaseOanda,symbol+'_OZ')
-        #Converted=convertToList(DF,symbol)
-        #print(Converted[0:3])
-        #table_object = client.table(write_table).new(Converted)
-        #print(table_object.rows)
-        #result = table_object.store()
+        Converted=convertToList(DF,symbol)
+        table_object = client.table(write_table).new(Converted)
+        result = table_object.store()
         #newAllDF=newAllDF.append(DF)
         print('After referesh_SymbolFrame: '+symbol)
     #newAllDF.reset_index(inplace=True)
     #newAllDF.rename(columns={'index':'DateTime'},inplace=True)
     #return newAllDF
+
+
 
 def convertToList(DF,SymbolName="HD"):
     newList=list()
@@ -120,12 +120,56 @@ def convertToList(DF,SymbolName="HD"):
               getVal('wOpen'),getVal('wLo'),getVal('wHi') ])
     return newList
 
+def convertDynamicToList(DF, Symbol='CORN_USD', table_name="OandaTTT"):
+    elemList, NewDict = createMappingFromTable(table_name)
+    newDF = DF
+    newDF['Symbol'] = Symbol
+    newList = list()
+
+    for i in range(len(DF.index.values)):
+        getVal = lambda x: newDF[x][i]
+        newListElem = [NewDict[x](getVal(x)) for x in elemList]
+        newList.append(newListElem)
+
+    return newList
+
+
+
+def writeDFToTable(DF,symbol,table_name,Logger):
+    Logger.info('Before dropping Nans in DF')
+    newDF=DF.dropna()
+    Logger.info('Before converting DF to List')
+    Converted = convertDynamicToList(newDF, symbol,table_name)
+    Logger.info('After converting DF to List')
+    table_object = client.table(table_name).new(Converted)
+    result = table_object.store()
+    if not result :
+        try:
+            Logger.warning('''{} was tried to store in {}'''.format(symbol,table_name))
+        except:
+            Logger.info('''{} was stored in {}'''.format(symbol, table_name))
+
+
+
+def getNewestDateForSymbol(table=write_table,Symbol='CORN_USD_H1'):
+    '''
+    :param table: Which riak ts table should be accessed
+    :param Symbol: which symbol is used to retrieve the latest date
+    :return: latest date as epoch integer
+    '''
+    DF=pd.DataFrame()
+    table=client.table(write_table)
+    for key in table.stream_keys():
+        DF=DF.append(pd.DataFrame(key,columns=['Date','Symbol']))
+    DF['Symbol']=DF['Symbol'].str.decode('ASCII')
+    return DF[DF['Symbol']==Symbol].Date.sort_values().tail(1).values[0].astype(datetime.datetime)
+
 # Function to convert Python date to Unix Epoch
 def convert_to_epoch ( date_to_convert ):
     return calendar.timegm(date_to_convert.timetuple()) * 1000
 
 # Function to convert TsObject to list of lists
-def ts_obj_to_list_of_lists (ts_obj):
+def ts_obj_to_list_of_lists(ts_obj):
     list_to_return = []
     for row in ts_obj.rows:
         list = []
@@ -133,6 +177,42 @@ def ts_obj_to_list_of_lists (ts_obj):
             list.append(row[i])
         list_to_return.append(list)
     return list_to_return
+
+
+def createMappingFromTable(table_name="OandaTTT"):
+    table = client.table(table_name)
+    Desc = table.describe()
+    DFRows = pd.DataFrame(Desc.rows)
+    typeMap = {'boolean': bool, 'double': float, 'timestamp': pd.to_datetime, 'sint64': int, 'varchar': str}
+    elemList = [x for x in DFRows[0].str.decode('ASCII')]
+    mappingDict = {i[0].decode('ASCII'): typeMap[i[1].decode('ASCII')] for i in DFRows.values}
+    return elemList, mappingDict
+
+
+
+
+
+def convert_to_epoch(date_to_convert):
+    return calendar.timegm(date_to_convert.timetuple()) * 1000
+
+
+def query_table_from_to(symbol, table_name, start_date, end_date):
+    query = """\
+            SELECT *
+            FROM {}
+            WHERE Symbol = '{}' AND Date >= {} AND Date < {} order by Date desc
+        """.format(table_name, symbol, convert_to_epoch(start_date),
+                   convert_to_epoch(end_date))
+    try:
+        elemList, mappingDict = createMappingFromTable(table_name)
+        data_set = client.ts_query(table_name, query)
+        boring_list = ts_obj_to_list_of_lists(data_set)
+        DF = pd.DataFrame(boring_list)
+        DF.columns = elemList
+        DF['Symbol'] = symbol
+        return DF
+    except:
+        return None
 
 def query_from_to(symbol, start_date, end_date):
     query = """\
@@ -144,7 +224,7 @@ def query_from_to(symbol, start_date, end_date):
                convert_to_epoch( start_date ),
                convert_to_epoch( end_date ) )
 
-    print(query)
+
     data_set = client.ts_query(write_table, query)
     boring_list=ts_obj_to_list_of_lists(data_set)
     if len(boring_list) == 0 :
