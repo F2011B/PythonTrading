@@ -158,11 +158,24 @@ def getNewestDateForSymbol(table=write_table,Symbol='CORN_USD_H1'):
     :return: latest date as epoch integer
     '''
     DF=pd.DataFrame()
-    table=client.table(write_table)
+    table=client.table(table)
     for key in table.stream_keys():
         DF=DF.append(pd.DataFrame(key,columns=['Date','Symbol']))
     DF['Symbol']=DF['Symbol'].str.decode('ASCII')
     return DF[DF['Symbol']==Symbol].Date.sort_values().tail(1).values[0].astype(datetime.datetime)
+
+
+def getAvailSymbols(table=write_table):
+    '''
+    :param table: Which riak ts table should be accessed
+    :return: all available symbols as list
+    '''
+    DF=pd.DataFrame()
+    table=client.table(table)
+    for key in table.stream_keys():
+        DF=DF.append(pd.DataFrame(key,columns=['Date','Symbol']))
+    Symbols=DF['Symbol'].drop_duplicates()
+    return Symbols.values
 
 # Function to convert Python date to Unix Epoch
 def convert_to_epoch ( date_to_convert ):

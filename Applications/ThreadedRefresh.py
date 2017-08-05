@@ -64,14 +64,15 @@ app_log.addHandler(my_handler)
 
 
 def runUpdate():
-    for element in symbolList:
-        app_log.info(element)
-        DF =  Oanda.get_intraday_pandas_dback(element,3000,'H1')
-        TTTDF=TaylorCycle.CalcTaylorCycle(DF)
-        TTTDF.to_hdf(Constants.DatabaseTaylor,element)
-        app_log.info('TaylorHDF written')
-        riak.writeDFToTable(TTTDF,element,'OandaTTT',app_log)
-        app_log.info('End of Loop Element')
+    while True:
+        for element in symbolList:
+            app_log.info(element)
+            DF =  Oanda.get_intraday_pandas_dback(element,3000,'H1')
+            TTTDF=TaylorCycle.CalcTaylorCycle(DF)
+            TTTDF.to_hdf(Constants.DatabaseTaylor,element)
+            app_log.info('TaylorHDF written')
+            riak.writeDFToTable(TTTDF,element,'OandaTTTH',app_log)
+            app_log.info('End of Loop Element')
 
         
 
