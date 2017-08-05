@@ -19,8 +19,8 @@ LoggingFlask=os.path.join(home,'log/Flask.log')
 
 
 OZRefreshDay=WeekDays['Monday']
-RiakServer='81.169.177.112'
-RiakPort= 8198
+RiakServer='85.214.153.175'
+RiakPort= 8098
 RiakOZTable='MyStockData'
 
 #SymbolsToWatch=['LMT','HES','WMB','X', 'HD', 'LMT', 'BA','NVDA','LOW']

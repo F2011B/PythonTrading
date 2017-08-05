@@ -71,7 +71,7 @@ def runUpdate():
             TTTDF=TaylorCycle.CalcTaylorCycle(DF)
             TTTDF.to_hdf(Constants.DatabaseTaylor,element)
             app_log.info('TaylorHDF written')
-            riak.writeDFToTable(TTTDF,element,'OandaTTTH',app_log)
+            riak.writeDFToTable(TTTDF,element,'OandaTTT_H',app_log)
             app_log.info('End of Loop Element')
 
         
