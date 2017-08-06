@@ -67,14 +67,31 @@ def runUpdate():
     while True:
         for element in symbolList:
             app_log.info(element)
-            DF =  Oanda.get_intraday_pandas_dback(element,3000,'H1')
-            TTTDF=TaylorCycle.CalcTaylorCycle(DF)
-            TTTDF.to_hdf(Constants.DatabaseTaylor,element)
+            DF=None
+            try:
+                DF =  Oanda.get_intraday_pandas_dback(element,3000,'H1')
+            except:
+                app_log.error('Error occured in Oanda.get_intraday_pandas_dback')
+                continue
+
+            if DF == None :
+                app_log.error('DF is None')
+                continue
+            TTTDF=None
+            try:
+                TTTDF=TaylorCycle.CalcTaylorCycle(DF)
+            except:
+                app_log.error('TaylorCycle.CalcTaylorCycle generated error')
+                continue
+
+            #TTTDF.to_hdf(Constants.DatabaseTaylor,element)
             app_log.info('TaylorHDF written')
-            riak.writeDFToTable(TTTDF,element,'OandaTTT_H',app_log)
+            try:
+                riak.writeDFToTable(TTTDF,element,'OandaTTT_H',app_log)
+            except:
+                app_log.error('riak.writeDFToTable generated error')
+                continue
+
             app_log.info('End of Loop Element')
-
-        
-
 
 runUpdate()
