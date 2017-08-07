@@ -74,9 +74,11 @@ def runUpdate():
                 app_log.error('Error occured in Oanda.get_intraday_pandas_dback')
                 continue
 
-            if DF == None :
+
+            if DF is None :
                 app_log.error('DF is None')
                 continue
+
             TTTDF=None
             try:
                 TTTDF=TaylorCycle.CalcTaylorCycle(DF)
@@ -84,8 +86,10 @@ def runUpdate():
                 app_log.error('TaylorCycle.CalcTaylorCycle generated error')
                 continue
 
-            #TTTDF.to_hdf(Constants.DatabaseTaylor,element)
-            app_log.info('TaylorHDF written')
+            if TTTDF is None :
+                app_log.error('TTTDF is None')
+                continue
+
             try:
                 riak.writeDFToTable(TTTDF,element,'OandaTTT_H',app_log)
             except:
