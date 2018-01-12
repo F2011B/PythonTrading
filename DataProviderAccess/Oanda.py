@@ -210,7 +210,7 @@ def ReadOrUpdataDB(symbol,startDate, endDate, gran) :
     print(Result.keys())
     print('Will write Oanda.hdf : ' + symbolKey)
     if resample:
-        return resample_DOHLCV_pandas(Result, gran)
+        return resample_dohlcv_pandas(Result, gran)
 
     return Result
         
@@ -252,7 +252,7 @@ def get_availableSymbols(SymbolFilter=None):
     return DF.instrument.values
 
 
-def resample_DOHLCV_pandas(DF,targetTF):
+def resample_dohlcv_pandas(DF, targetTF):
     ohlc_dict = {
         'Open': 'first',
         'High': 'max',

@@ -1,16 +1,12 @@
 
-#from Modules import IQData
+
 import IQData
-#from Modules import LiverMoore
-#from Modules import OZ
 import numpy as np
 import pandas as panda
 import datetime
-#import Logger
-#from Modules import Logger
 import json
-#import JsonEncoderDateTime
-#from Modules.JsonEncoderDateTime import *
+
+
 
 
 intervalMap={ "3h":10800,"1h": 3600, "1m":60,"5m":300,"15m":900,"30m":1800}
@@ -44,12 +40,6 @@ def get_DOHLCV_desc(periods,symbol):
     Date, Open, High, Low, Close, Volume = convert_to_array_DOHLCV(ohlcv)
     return Date, Open, High, Low, Close, Volume
 
-#def get_DOHLCV_desc(periods,symbol):
-#    ohlcv = IQData.get_daily_history(symbol, periods)
-#    Date, Open, High, Low, Close, Volume = convert_to_array_DOHLCV(ohlcv)
-#    return Date, Open, High, Low, Close, Volume
-
-
 def get_DOHLCV(Periods,symbol):
     ohlcv = IQData.get_daily_history(symbol, Periods)
     Date, Open, High, Low, Close, Volume = convert_to_array_DOHLCV(ohlcv)
@@ -71,7 +61,7 @@ def convert_to_array_DOHLCV(ohlcv):
     return Date, Open, High, Low, Close, Volume
 
 
-def get_weekly_DOHLCV(Periods,symbol):
+def get_weekly_dohlcv(Periods, symbol):
     daily_periods=Periods*5+10
     Date, Open, High, Low, Close, Volume=get_DOHLCV(daily_periods,symbol)
     wDate, wOpenArr, wHighArr, wLowArr, wCloseArr, wVolumeArr=convert_to_weekly(Close, Date, High, Low, Open, Volume)
