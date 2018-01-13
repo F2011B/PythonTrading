@@ -15,19 +15,18 @@ import numpy as np
 import unittest
 from enum import Enum
 
-#import RestSettings
-
 cmd_folder = os.path.realpath(os.path.abspath(os.path.split(inspect.getfile(inspect.currentframe()))[0]))
 if cmd_folder not in sys.path:
     sys.path.insert(0, cmd_folder)
 
 # use this if you want to include modules from a subfolder
 
-def insertModule(ModuleFolder):
+def insertModule(module_folder):
     cmd_subfolder = os.path.realpath(
-        os.path.abspath(os.path.join(os.path.split(inspect.getfile(inspect.currentframe()))[0],'..', ModuleFolder)))
+        os.path.abspath(os.path.join(os.path.split(inspect.getfile(inspect.currentframe()))[0],'..', module_folder)))
     if cmd_subfolder not in sys.path:
         sys.path.insert(0, cmd_subfolder)
+
 
 insertModule('Constants')
 insertModule('DataProviderAccess')
@@ -37,40 +36,43 @@ import Constants
 #import Constants.Constants as Constants
 
 
-OANDA= oandapy.API(environment="live", access_token=Passwords.accessTokenOanda)
+OANDA = oandapy.API(environment="live", access_token=Passwords.accessTokenOanda)
 
-accounts=OANDA.get_accounts()
+accounts = OANDA.get_accounts()
 accounts['accounts'][0]['accountId']
 
 
-M1='M1'
-M2='M2'
-M3='M3'
-M4='M5'
-M15='M15'
-M30='M30'
-H1='H1'
-D='D'
-W='W'
+M1 = 'M1'
+M2 = 'M2'
+M3 = 'M3'
+M4 = 'M5'
+M15 = 'M15'
+M30 = 'M30'
+H1 = 'H1'
+D = 'D'
+W = 'W'
 
-granularities=['M1','M2','M3','M4','M15','M30','H1','D','W']
+granularities = ['M1','M2','M3','M4','M15','M30','H1','D','W']
 
-OandaSymbols=['AU200_AUD','AUD_CAD','AUD_CHF','AUD_HKD','AUD_JPY','AUD_NZD','AUD_SGD','AUD_USD','BCO_USD',
-'CAD_CHF','CAD_HKD','CAD_JPY','CAD_SGD','CH20_CHF','CHF_HKD','CHF_JPY','CHF_ZAR','CN50_USD','CORN_USD',
-'DE10YB_EUR','DE30_EUR','EU50_EUR','EUR_AUD','EUR_CAD','EUR_CHF','EUR_CZK','EUR_DKK','EUR_GBP','EUR_HKD',
-'EUR_HUF','EUR_JPY','EUR_NOK','EUR_NZD','EUR_PLN','EUR_SEK','EUR_SGD','EUR_TRY','EUR_USD','EUR_ZAR',
-'FR40_EUR','GBP_AUD','GBP_CAD','GBP_CHF','GBP_HKD','GBP_JPY','GBP_NZD','GBP_PLN','GBP_SGD','GBP_USD',
-'GBP_ZAR','HK33_HKD','HKD_JPY','IN50_USD','JP225_USD','NAS100_USD','NATGAS_USD','NL25_EUR','NZD_CAD',
-'NZD_CHF','NZD_HKD','NZD_JPY','NZD_SGD','NZD_USD','SG30_SGD','SGD_CHF','SGD_HKD','SGD_JPY','SOYBN_USD',
-'SPX500_USD','SUGAR_USD','TRY_JPY','TWIX_USD','UK100_GBP','UK10YB_GBP','US2000_USD','US30_USD','USB02Y_USD',
-'USB05Y_USD','USB10Y_USD','USB30Y_USD','USD_CAD','USD_CHF','USD_CNH','USD_CZK','USD_DKK','USD_HKD','USD_HUF',
-'USD_INR','USD_JPY','USD_MXN','USD_NOK','USD_PLN','USD_SAR','USD_SEK','USD_SGD','USD_THB','USD_TRY','USD_ZAR',
-'WHEAT_USD','WTICO_USD','XAG_AUD','XAG_CAD','XAG_CHF','XAG_EUR','XAG_GBP','XAG_HKD','XAG_JPY','XAG_NZD',
-'XAG_SGD','XAG_USD','XAU_AUD','XAU_CAD','XAU_CHF','XAU_EUR','XAU_GBP','XAU_HKD','XAU_JPY','XAU_NZD',
-'XAU_SGD','XAU_USD','XAU_XAG','XCU_USD','XPD_USD','XPT_USD','ZAR_JPY' ]
+OandaSymbols = ['AU200_AUD', 'AUD_CAD', 'AUD_CHF', 'AUD_HKD', 'AUD_JPY', 'AUD_NZD', 'AUD_SGD', 'AUD_USD', 'BCO_USD',
+                'CAD_CHF', 'CAD_HKD', 'CAD_JPY', 'CAD_SGD', 'CH20_CHF','CHF_HKD','CHF_JPY','CHF_ZAR','CN50_USD',
+                'CORN_USD', 'DE10YB_EUR', 'DE30_EUR', 'EU50_EUR', 'EUR_AUD', 'EUR_CAD', 'EUR_CHF', 'EUR_CZK', 'EUR_DKK',
+                'EUR_GBP', 'EUR_HKD', 'EUR_HUF', 'EUR_JPY', 'EUR_NOK', 'EUR_NZD', 'EUR_PLN', 'EUR_SEK', 'EUR_SGD',
+                'EUR_TRY', 'EUR_USD', 'EUR_ZAR', 'FR40_EUR', 'GBP_AUD', 'GBP_CAD','GBP_CHF', 'GBP_HKD', 'GBP_JPY',
+                'GBP_NZD', 'GBP_PLN', 'GBP_SGD', 'GBP_USD', 'GBP_ZAR', 'HK33_HKD','HKD_JPY', 'IN50_USD', 'JP225_USD',
+                'NAS100_USD', 'NATGAS_USD', 'NL25_EUR', 'NZD_CAD', 'NZD_CHF', 'NZD_HKD', 'NZD_JPY', 'NZD_SGD', 'NZD_USD',
+                'SG30_SGD', 'SGD_CHF', 'SGD_HKD', 'SGD_JPY', 'SOYBN_USD', 'SPX500_USD', 'SUGAR_USD','TRY_JPY',
+                'TWIX_USD', 'UK100_GBP', 'UK10YB_GBP', 'US2000_USD', 'US30_USD', 'USB02Y_USD', 'USB05Y_USD',
+                'USB10Y_USD', 'USB30Y_USD', 'USD_CAD', 'USD_CHF', 'USD_CNH', 'USD_CZK', 'USD_DKK', 'USD_HKD',
+                'USD_HUF', 'USD_INR', 'USD_JPY','USD_MXN', 'USD_NOK', 'USD_PLN', 'USD_SAR', 'USD_SEK', 'USD_SGD',
+                'USD_THB', 'USD_TRY', 'USD_ZAR', 'WHEAT_USD', 'WTICO_USD', 'XAG_AUD', 'XAG_CAD', 'XAG_CHF', 'XAG_EUR',
+                'XAG_GBP', 'XAG_HKD', 'XAG_JPY', 'XAG_NZD', 'XAG_SGD', 'XAG_USD', 'XAU_AUD', 'XAU_CAD', 'XAU_CHF',
+                'XAU_EUR', 'XAU_GBP', 'XAU_HKD', 'XAU_JPY', 'XAU_NZD', 'XAU_SGD', 'XAU_USD', 'XAU_XAG', 'XCU_USD',
+                'XPD_USD', 'XPT_USD', 'ZAR_JPY']
 
 
 updateFrequency=datetime.timedelta(minutes = 1)
+
 
 def convertDateTimeStr(input):
     splitted=input.split('T',)
@@ -87,46 +89,43 @@ def convertDateTimeStr(input):
                       second=int(Second))
     
     
-def getDataFromStartDate(startDate,instrument='WTICO_USD',gran='M15',dayDiff=5):
+def getDataFromStartDate(start_date, instrument='WTICO_USD', gran='M15', day_diff=5):
     condition=True
     print(instrument)
-    print(startDate)
-    StartDateString=str(startDate.year)+'-'+ '{:02d}'.format(startDate.month)+'-'+'{:02d}'.format(startDate.day)
-    Today=datetime.datetime.now()
-    DFList=list()
+    print(start_date)
+    start_date_string= str(start_date.year) + '-' + '{:02d}'.format(start_date.month) + '-' + '{:02d}'.format(start_date.day)
+    today=datetime.datetime.now()
+    df_list=list()
     while condition:
-        #print(StartDateString)
         try:
-            DF=pd.DataFrame(OANDA.get_history(instrument=instrument,granularity=gran,start=StartDateString,count=5000)['candles'])
-            if not 'time' in DF.keys():
+            df=pd.DataFrame(OANDA.get_history(instrument=instrument,granularity=gran,start=start_date_string,count=5000)['candles'])
+            if not 'time' in df.keys():
                 break
-            DF['DateTime'] = DF['time'].map(convertDateTimeStr)
+            df['DateTime'] = df['time'].map(convertDateTimeStr)
 
-            lastDate = startDate
-            startDate = DF['DateTime'][len(DF['DateTime']) - 1].to_datetime()
-            Diff = Today - startDate
-            #print(Diff)
-            # print(startDate)
-            newDay = "%02d" % (startDate.day)
-            newHour = "%02d" % (startDate.hour,)
-            newMin = "%02d" % (startDate.minute + 15,)
-            newS = "%02d" % (startDate.second,)
-            StartDateString = str(startDate.year) + '-' + str(
-                startDate.month) + '-' + newDay + 'T' + newHour + ':' + newMin + ':' + newS
+            start_date = df['DateTime'][len(df['DateTime']) - 1].to_datetime()
+            Diff = today - start_date
 
-            DF.set_index('DateTime', inplace=True)
-            DFList.append(DF)
-            condition = not (Diff.days <= dayDiff)
+            newDay = "%02d" % (start_date.day)
+            newHour = "%02d" % (start_date.hour,)
+            newMin = "%02d" % (start_date.minute + 15,)
+            newS = "%02d" % (start_date.second,)
+            start_date_string = str(start_date.year) + '-' + str(
+                start_date.month) + '-' + newDay + 'T' + newHour + ':' + newMin + ':' + newS
 
-            Result = DFList[0]
-            for i in range(1, len(DFList)):
-                Result = Result.append(DFList[i])
+            df.set_index('DateTime', inplace=True)
+            df_list.append(df)
+            condition = not (Diff.days <= day_diff)
+
+            result = df_list[0]
+            for i in range(1, len(df_list)):
+                result = result.append(df_list[i])
         except:
-            print(StartDateString)
-            print(DFList)
+            print(start_date_string)
+            print(df_list)
             condition=False
             return None
-    return Result
+    return result
 
 
         
