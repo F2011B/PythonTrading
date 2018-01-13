@@ -3,9 +3,10 @@ import numpy as np
 import pandas as panda
 import datetime
 
-intervalMap={"3h": 10800, "1h": 3600, "1m": 60, "5m": 300, "15m": 900, "30m": 1800}
+intervalMap = {"3h": 10800, "1h": 3600, "1m": 60, "5m": 300, "15m": 900, "30m": 1800}
 
-intervalMapPandas={"3h": '180min', '1h': '60min', '1m': '1min', '5m': '5min', '30m': '30min', '1d': '1d', '15m': '15min'}
+intervalMapPandas = {"3h": '180min', '1h': '60min', '1m': '1min',
+                     '5m': '5min', '30m': '30min', '1d': '1d', '15m': '15min'}
 
 
 def get_ohlcv(periods, symbol):
@@ -90,12 +91,12 @@ def get_weekly_dohlcv_pandas(periods, symbol):
         'Volume': 'sum',
         'OI': 'sum'
     }
-    DF=IQData.get_intraday_pandas_dback(symbol, 3600, periods * 5)
-    ResampledData = DF.resample('W',closed='left',label='left', how=ohlc_dict )#.apply(ohlc_dict)
-    return ResampledData
+    df = IQData.get_intraday_pandas_dback(symbol, 3600, periods * 5)
+    resampled_data = df.resample('W', closed='left', label='left', how=ohlc_dict)
+    return resampled_data
 
 
-def resample_dohlcv_pandas(DF, targetTF):
+def resample_dohlcv_pandas(df, target_tf):
     ohlc_dict = {
         'Open': 'first',
         'High': 'max',
@@ -104,169 +105,152 @@ def resample_dohlcv_pandas(DF, targetTF):
         'Volume': 'sum',
         'OI': 'sum'
     }
-    ResampledData = DF.resample(targetTF,closed='left',label='left', how=ohlc_dict )#.apply(ohlc_dict)
-    return ResampledData
-
-def get_intraDay_DOHLCV_pandas(symbol,numWeeks=20,timeFrame=3600):
-    DF = IQData.get_intraday_pandas_wback(symbol, timeFrame, numWeeks)
-    return DF
-
-def get_daily_DOHLCV_pandas(symbol,numWeeks=20):
-    return IQData.get_daily_history_pandas(symbol, numWeeks*5)
+    resampled_data = df.resample(target_tf, closed='left', label='left', how=ohlc_dict)
+    return resampled_data
 
 
-def convert_to_weekly(Close, Date, High, Low, Open, Volume):
-    wOpen = list()
-    wHigh = list()
-    wClose = list()
-    wLow = list()
-    wVolume = list()
-    wDate=list()
-    for i in range(len(Date)):
+def get_intra_day_dohlcv_pandas(symbol, num_weeks=20, time_frame=3600):
+    df = IQData.get_intraday_pandas_wback(symbol, time_frame, num_weeks)
+    return df
+
+
+def get_daily_dohlcv_pandas(symbol, num_weeks=20):
+    return IQData.get_daily_history_pandas(symbol, num_weeks * 5)
+
+
+def convert_to_weekly(close, date, high, low, open_price, volume):
+    w_open = list()
+    w_high = list()
+    w_close = list()
+    w_low = list()
+    w_volume = list()
+    w_date = list()
+    for i in range(len(date)):
         if i == 0:
             continue
-        if Date[i].day - Date[i - 1].day >= 2:
-            LC = len(wClose)
-            if LC != 0:
-                wClose[LC - 1] = Close[i - 1]
-            wDate.append(Date[i])
-            wOpen.append(Open[i])
-            wLow.append(Low[i])
-            wHigh.append(High[i])
-            wClose.append(Close[i])
-            wVolume.append(Volume[i])
+        if date[i].day - date[i - 1].day >= 2:
+            lc = len(w_close)
+            if lc != 0:
+                w_close[lc - 1] = close[i - 1]
+            w_date.append(date[i])
+            w_open.append(open_price[i])
+            w_low.append(low[i])
+            w_high.append(high[i])
+            w_close.append(close[i])
+            w_volume.append(volume[i])
         else:
-            if len(wLow) == 0:
+            if len(w_low) == 0:
                 continue
             else:
-                Last = len(wLow) - 1
-                if wLow[Last] > Low[i]: wLow[Last] = Low[i]
-                if wHigh[Last] < High[i]: wHigh[Last] = High[i]
-                wVolume[Last] = wVolume[Last] + Volume[i]
-    wOpenArr = np.array(wOpen)
-    wCloseArr = np.array(wClose)
-    wLowArr = np.array(wLow)
-    wHighArr = np.array(wHigh)
-    wVolumeArr = np.array(wVolume)
-    return wDate, wOpenArr, wHighArr, wLowArr, wCloseArr, wVolumeArr
+                last = len(w_low) - 1
+                if w_low[last] > low[i]:
+                    w_low[last] = low[i]
+                if w_high[last] < high[i]:
+                    w_high[last] = high[i]
+                w_volume[last] = w_volume[last] + volume[i]
+    w_open_arr = np.array(w_open)
+    w_close_arr = np.array(w_close)
+    w_low_arr = np.array(w_low)
+    w_high_arr = np.array(w_high)
+    w_volume_arr = np.array(w_volume)
+    return w_date, w_open_arr, w_high_arr, w_low_arr, w_close_arr, w_volume_arr
 
-def expand_weekly(wDate,wSeries,Date):
-    if len(wDate) != len(wSeries) :
-   #     Logger.log('wDate to short')
+
+def expand_weekly(w_date, w_series, date):
+    if len(w_date) != len(w_series):
         return None
 
+    n_date = ensure_correct_ascending_order(date)
+    n_w_date = ensure_correct_ascending_order(w_date)
+    nw_series = ensure_correct_ascending_timeseries(w_date, w_series)
 
-    #Logger.log('Before correct')
+    series = list()
+    new_date = list()
 
-    nDate=ensure_correct_ascending_order(Date)
-    nWDate=ensure_correct_ascending_order(wDate)
-    nwSeries=ensure_correct_ascending_timeseries(wDate,wSeries)
+    for counter in range(len(n_w_date)-1):
+        for i in range(len(n_date)):
+            if (n_date[i] >= n_w_date[counter]) and (n_date[i] < n_w_date[counter+1]):
+                series.append(nw_series[counter])
+                new_date.append(n_date[i])
+    return series, new_date
 
-    #nWDate.append(nWDate[len(nWDate)-1]+ datetime.timedelta(days=7))
-    Series=list()
-    NewDate=list()
-#    Logger.log(str(len(Date)))
-#    Logger.log('nWDate Length')
-#    Logger.log(str(len(nWDate)))
-#    Logger.log(str(len(nwSeries)))
-#    Logger.log('nWDate Length Over')
-    for counter in range(len(nWDate)-1):
-        for i in range(len(nDate)):
-            if (nDate[i] >= nWDate[counter]) and (nDate[i] < nWDate[counter+1]):
-                Series.append(nwSeries[counter])
-                NewDate.append(nDate[i])
-    return Series,NewDate
 
-def expand_weekly_pandas(wDate,wSeries,TargetTF):
-    DF=panda.DataFrame({'Date':wDate,'Series':wSeries})
-    DF = DF.set_index(['Date'])
-    ResampledData=DF.resample(intervalMapPandas[TargetTF], fill_method='bfill')
-    return ResampledData['Series'],ResampledData.index
+def expand_weekly_pandas(w_date, w_series, target_tf):
+    df = panda.DataFrame({'Date': w_date, 'Series': w_series})
+    df = df.set_index(['Date'])
+    resampled_data = df.resample(intervalMapPandas[target_tf], fill_method='bfill')
+    return resampled_data['Series'], resampled_data.index
 
-def expand_weekly_new(wDate,wSeries,Date):
-    if len(wDate) != len(wSeries) :
-#        Logger.log('wDate to short')
+
+def expand_weekly_new(w_date, w_series, date):
+    if len(w_date) != len(w_series):
+
         return None
 
-    nDate=ensure_correct_ascending_order(Date)
-    nWDate=ensure_correct_ascending_order(wDate)
-    nwSeries=ensure_correct_ascending_timeseries(wDate,wSeries)
-#    Logger.log('nWDate Length ')
-#    Logger.log(str(len(nWDate)))
-#    Logger.log('  ')
-#    Logger.log(str(len(nwSeries)))
-#    Logger.log('nWDate Length Over ')
+    n_date = ensure_correct_ascending_order(date)
+    nw_date = ensure_correct_ascending_order(w_date)
+    nw_series = ensure_correct_ascending_timeseries(w_date, w_series)
 
-    nWDate.append(nWDate[len(nWDate)-1]+ datetime.timedelta(days=7))
-    Series=list()
-    NewDate=list()
-#    Logger.log(str(len(Date)))
+    nw_date.append(nw_date[len(nw_date)-1] + datetime.timedelta(days=7))
+    series = list()
+    new_date = list()
 
-    counter=0
-    wCounter=0
-    Stop=False
-    while not Stop :
-        while not Stop and (counter < len(nDate) ):
-            if (nDate[counter].isocalendar()[1] == nWDate[wCounter].isocalendar()[1]) :
-                Stop=True
-            if not Stop :
+    counter = 0
+    w_counter = 0
+    stop = False
+    while not stop:
+        while not stop and (counter < len(n_date)):
+            if n_date[counter].isocalendar()[1] == nw_date[w_counter].isocalendar()[1]:
+                stop = True
+            if not stop:
                 counter = counter + 1
-        if not Stop :
-            wCounter= wCounter +1
+        if not stop:
+            w_counter = w_counter + 1
+
+    last_week = nw_date[0].isocalendar()[1]
+
+    w_count = 0
+    for i in range(counter, len(n_date)):
+        if n_date[i].isocalendar()[1] > last_week:
+            last_week = n_date[i].isocalendar()[1]
+            w_count = w_count+1
+        series.append(nw_series[w_count])
+        new_date.append(n_date[i])
+
+    return series, new_date
 
 
-
-    lastWeek=nWDate[0].isocalendar()[1]
-
-    wCount=0
-    for i in range(counter,len(nDate) ):
-        if nDate[i].isocalendar()[1] > lastWeek :
-            lastWeek=nDate[i].isocalendar()[1]
-            wCount=wCount+1
-        Series.append(nwSeries[wCount])
-        NewDate.append(nDate[i])
-
-    return Series,NewDate
-
-def ensure_correct_ascending_timeseries(inDate,Series):
-    nSeries=list(Series)
-    if inDate[0] > inDate[1]:
-        nSeries=Series[::-1]
-    return nSeries
-
-def ensure_correct_ascending_order(input):
-    nOutput = list(input)
-    if input[0] > input[1]:
-        nOutput = input[::-1]
-    return nOutput
+def ensure_correct_ascending_timeseries(in_date, series):
+    n_series = list(series)
+    if in_date[0] > in_date[1]:
+        n_series = series[::-1]
+    return n_series
 
 
+def ensure_correct_ascending_order(input_data):
+    n_output = list(input_data)
+    if input_data[0] > input_data[1]:
+        n_output = input_data[::-1]
+    return n_output
 
 
-Black=0
-Blue=16711680
-Cyan=16776960
-Green=65280
-Magenta=16711935
-Red=255
-Yellow=65535
-White=16777215
-DarkBlue=8388608
-DarkCyan=8421376
-DarkGreen=32768
-DarkMagenta=8388736
-DarkRed=128
-DarkBrown=32896
-DarkGray=8421504
-LightGray=12632256
+Black = 0
+Blue = 16711680
+Cyan = 16776960
+Green = 65280
+Magenta = 16711935
+Red = 255
+Yellow = 65535
+White = 16777215
+DarkBlue = 8388608
+DarkCyan = 8421376
+DarkGreen = 32768
+DarkMagenta = 8388736
+DarkRed = 128
+DarkBrown = 32896
+DarkGray = 8421504
+LightGray = 12632256
+
 
 def rgb_to_hex(rgb):
     return '#'+str(format(rgb, '04X'))
-
-
-
-
-
-
-
-
