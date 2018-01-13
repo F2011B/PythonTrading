@@ -34,39 +34,40 @@ def convert_to_array_ohlcv(ohlcv):
 
 def get_dohlcv_desc(periods, symbol):
     ohlcv = IQData.get_ohlc_days_back(symbol, periods)
-    date, open_price, high, low, close, volume = convert_to_array_DOHLCV(ohlcv)
+    date, open_price, high, low, close, volume = convert_to_array_dohlcv(ohlcv)
     return date, open_price, high, low, close, volume
 
 
-def get_dohlcv(Periods, symbol):
-    ohlcv = IQData.get_daily_history(symbol, Periods)
-    date, open_price, high, low, close, volume = convert_to_array_DOHLCV(ohlcv)
+def get_dohlcv(periods, symbol):
+    ohlcv = IQData.get_daily_history(symbol, periods)
+    date, open_price, high, low, close, volume = convert_to_array_dohlcv(ohlcv)
     return date, open_price, high, low, close, volume
 
 
-def get_DOHLCV_rev(Periods,symbol):
-    ohlcv = IQData.get_daily_history(symbol, Periods)
-    date, open_price, high, low, close, volume = convert_to_array_DOHLCV_rev(ohlcv)
+def get_dohlcv_rev(periods, symbol):
+    ohlcv = IQData.get_daily_history(symbol, periods)
+    date, open_price, high, low, close, volume = convert_to_array_dohlcv_rev(ohlcv)
     return date, open_price, high, low, close, volume
 
 
-def convert_to_array_DOHLCV_rev(ohlcv):
-    Close, High, Low, Open, Volume = convert_to_array_ohlcv_rev(ohlcv)
-    Date = ohlcv['Date']
-    return  Date, Open, High, Low, Close, Volume
+def convert_to_array_dohlcv_rev(ohlcv):
+    close, high, low, open_price, volume = convert_to_array_ohlcv_rev(ohlcv)
+    date = ohlcv['Date']
+    return date, open_price, high, low, close, volume
 
 
-def convert_to_array_DOHLCV(ohlcv):
-    Close, High, Low, Open, Volume = convert_to_array_ohlcv(ohlcv)
-    Date = ohlcv['Date'][::-1]
-    return Date, Open, High, Low, Close, Volume
+def convert_to_array_dohlcv(ohlcv):
+    close, high, low, open_price, volume = convert_to_array_ohlcv(ohlcv)
+    date = ohlcv['Date'][::-1]
+    return date, open_price, high, low, close, volume
 
 
-def get_weekly_dohlcv(Periods, symbol):
-    daily_periods=Periods*5+10
-    Date, Open, High, Low, Close, Volume=get_dohlcv(daily_periods, symbol)
-    wDate, wOpenArr, wHighArr, wLowArr, wCloseArr, wVolumeArr=convert_to_weekly(Close, Date, High, Low, Open, Volume)
-    return wDate, wOpenArr, wHighArr, wLowArr, wCloseArr, wVolumeArr
+def get_weekly_dohlcv(periods, symbol):
+    daily_periods = periods * 5 + 10
+    date, open_price, high, low, close, volume = get_dohlcv(daily_periods, symbol)
+    w_date, w_open_arr, w_high_arr, w_low_arr, w_close_arr, w_volume_arr = \
+        convert_to_weekly(close, date, high, low, open_price, volume)
+    return w_date, w_open_arr, w_high_arr, w_low_arr, w_close_arr, w_volume_arr
 
 
 def ohlcsum(df):
@@ -80,7 +81,7 @@ def ohlcsum(df):
       }
 
 
-def get_weekly_DOHLCV_pandas(Periods,symbol):
+def get_weekly_dohlcv_pandas(periods, symbol):
     ohlc_dict = {
         'Open': 'first',
         'High': 'max',
@@ -89,12 +90,12 @@ def get_weekly_DOHLCV_pandas(Periods,symbol):
         'Volume': 'sum',
         'OI': 'sum'
     }
-    DF=IQData.get_intraday_pandas_dback(symbol, 3600, Periods*5)
+    DF=IQData.get_intraday_pandas_dback(symbol, 3600, periods * 5)
     ResampledData = DF.resample('W',closed='left',label='left', how=ohlc_dict )#.apply(ohlc_dict)
     return ResampledData
 
 
-def resample_DOHLCV_pandas(DF,targetTF):
+def resample_dohlcv_pandas(DF, targetTF):
     ohlc_dict = {
         'Open': 'first',
         'High': 'max',
