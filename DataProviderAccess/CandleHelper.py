@@ -135,18 +135,22 @@ def convert_to_weekly(close, date, high, low, open_price, volume):
             if len(w_low) == 0:
                 continue
             else:
-                last = len(w_low) - 1
-                if w_low[last] > low[i]:
-                    w_low[last] = low[i]
-                if w_high[last] < high[i]:
-                    w_high[last] = high[i]
-                w_volume[last] = w_volume[last] + volume[i]
+                correct_weekly_arrays(high, i, low, volume, w_high, w_low, w_volume)
     w_open_arr = np.array(w_open)
     w_close_arr = np.array(w_close)
     w_low_arr = np.array(w_low)
     w_high_arr = np.array(w_high)
     w_volume_arr = np.array(w_volume)
     return w_date, w_open_arr, w_high_arr, w_low_arr, w_close_arr, w_volume_arr
+
+
+def correct_weekly_arrays(high, i, low, volume, w_high, w_low, w_volume):
+    last = len(w_low) - 1
+    if w_low[last] > low[i]:
+        w_low[last] = low[i]
+    if w_high[last] < high[i]:
+        w_high[last] = high[i]
+    w_volume[last] = w_volume[last] + volume[i]
 
 
 def append_to_weekly_arrays(close, date, high, i, low, open_price, volume, w_close, w_date, w_high, w_low, w_open,
