@@ -80,7 +80,7 @@ def fill_up_to_now(Symbol, last_df):
     return new_df
 
 
-def refresh_SymbolFrame(symbol):
+def refresh_symbol_frame(symbol):
     df = None
     if ShouldRefreshAll(symbol):
         df = OZ.generate_overlays_oz_pandas('1h', symbol, numWeeksBack=200).dropna()
@@ -99,7 +99,7 @@ def refresh_SymbolFrame(symbol):
 def update_oz_riak(symbolList):
     for symbol in symbolList:
         print(symbol)
-        DF = refresh_SymbolFrame(symbol)
+        DF = refresh_symbol_frame(symbol)
         DF.to_hdf(Constants.DatabaseOanda, symbol + '_OZ')
         Converted = convertToList(DF, symbol)
         table_object = client.table(write_table).new(Converted)
