@@ -13,13 +13,10 @@ cmd_subfolder = os.path.realpath(
 if cmd_subfolder not in sys.path:
     sys.path.insert(0, cmd_subfolder)
 
-
-
-
 import Oanda
 
 
 class MyTestCase(unittest.TestCase):
     def test_get_availableSymbols(self):
-        Symbols=Oanda.get_availableSymbols()
+        Symbols = Oanda.get_availableSymbols()
         self.assertGreater(len(Symbols), 10)
