@@ -310,11 +310,12 @@ class Streamer(object):
             for line in response.iter_lines(90):
                 if not self.connected:
                     break
+                if not line:
+                    continue
 
-                if line:
-                    data = json.loads(line.decode("utf-8"))
-                    if not (ignore_heartbeat and "heartbeat" in data):
-                        self.on_success(data)
+                data = json.loads(line.decode("utf-8"))
+                if not (ignore_heartbeat and "heartbeat" in data):
+                    self.on_success(data)
 
 
     def on_success(self, data):
