@@ -91,28 +91,38 @@ def saveData(loop):
     symbolList = ['X', 'HD', 'LMT', 'BA']
     DFFrames = pd.DataFrame()
     while True:
-        if refresh_event.is_set():
-            refresh_event.clear()
-            print('Refresh was sent')
+        check_for_refresh_event()
 
-        if add_event.is_set():
-            add_event.clear()
-            addSymb = add_event.data
-            print('Add')
-            print(addSymb)
-            update = False
-            for element in addSymb:
-                if not (element in symbolList):
-                    symbolList.append(element)
-                    update = True
+        check_for_add_event(symbolList)
 
-        if send_event.is_set():
-            send_event.clear()
-            if len(DFFrames) == 0:
-                yield from q.put(DFFrames)
-            else:
-                yield from q.put(DFFrames)
+        yield from check_for_send_event(DFFrames)
+
         yield None
+
+
+def check_for_send_event(DFFrames):
+    if send_event.is_set():
+        send_event.clear()
+        yield from q.put(DFFrames)
+
+
+def check_for_add_event(symbolList):
+    if add_event.is_set():
+        add_event.clear()
+        addSymb = add_event.data
+        print('Add')
+        print(addSymb)
+        update = False
+        for element in addSymb:
+            if not (element in symbolList):
+                symbolList.append(element)
+                update = True
+
+
+def check_for_refresh_event():
+    if refresh_event.is_set():
+        refresh_event.clear()
+        print('Refresh was sent')
 
 
 def main():
