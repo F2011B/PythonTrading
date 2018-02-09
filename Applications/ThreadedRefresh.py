@@ -65,37 +65,41 @@ app_log.addHandler(my_handler)
 
 def runUpdate():
     while True:
-        for element in symbolList:
-            app_log.info(element)
-            DF = None
-            try:
-                DF = Oanda.get_intraday_pandas_dback(element, 3000, 'H1')
-            except:
-                app_log.error('Error occured in Oanda.get_intraday_pandas_dback')
-                continue
+        update_symol_list()
 
-            if DF is None:
-                app_log.error('DF is None')
-                continue
 
-            TTTDF = None
-            try:
-                TTTDF = TaylorCycle.CalcTaylorCycle(DF)
-            except:
-                app_log.error('TaylorCycle.CalcTaylorCycle generated error')
-                continue
+def update_symol_list():
+    for element in symbolList:
+        app_log.info(element)
+        DF = None
+        try:
+            DF = Oanda.get_intraday_pandas_dback(element, 3000, 'H1')
+        except:
+            app_log.error('Error occured in Oanda.get_intraday_pandas_dback')
+            continue
 
-            if TTTDF is None:
-                app_log.error('TTTDF is None')
-                continue
+        if DF is None:
+            app_log.error('DF is None')
+            continue
 
-            try:
-                riak.writeDFToTable(TTTDF, element, 'OandaTTT_H', app_log)
-            except:
-                app_log.error('riak.writeDFToTable generated error')
-                continue
+        TTTDF = None
+        try:
+            TTTDF = TaylorCycle.CalcTaylorCycle(DF)
+        except:
+            app_log.error('TaylorCycle.CalcTaylorCycle generated error')
+            continue
 
-            app_log.info('End of Loop Element')
+        if TTTDF is None:
+            app_log.error('TTTDF is None')
+            continue
+
+        try:
+            riak.writeDFToTable(TTTDF, element, 'OandaTTT_H', app_log)
+        except:
+            app_log.error('riak.writeDFToTable generated error')
+            continue
+
+        app_log.info('End of Loop Element')
 
 
 runUpdate()
