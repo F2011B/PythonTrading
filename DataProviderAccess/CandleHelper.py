@@ -198,14 +198,12 @@ def expand_weekly_new(w_date, w_series, date):
     counter = 0
     w_counter = 0
     stop = False
-    while not stop:
-        while not stop and (counter < len(n_date)):
-            if n_date[counter].isocalendar()[1] == nw_date[w_counter].isocalendar()[1]:
-                stop = True
-            if not stop:
-                counter = counter + 1
-        if not stop:
-            w_counter = w_counter + 1
+    while not stop and (counter < len(n_date)):
+        if n_date[counter].isocalendar()[1] == nw_date[w_counter].isocalendar()[1]:
+            break
+
+        counter = counter + 1
+        w_counter = w_counter + 1
 
     last_week = nw_date[0].isocalendar()[1]
 
