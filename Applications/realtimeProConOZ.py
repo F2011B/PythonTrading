@@ -32,7 +32,7 @@ refreshed_event = asyncio.Event()
 
 
 class SimpleEchoProtocol(asyncio.Protocol):
-    TIMEOUT = 5.0
+    const_timeout = 5.0
 
     def connection_made(self, transport):
         print("Connection received!")
