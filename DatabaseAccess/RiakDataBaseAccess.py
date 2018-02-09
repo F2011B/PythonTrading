@@ -4,6 +4,7 @@ import sys
 import inspect
 import calendar
 import datetime
+import OZ
 from riak import RiakClient
 
 cmd_folder = os.path.realpath(os.path.abspath(os.path.split(inspect.getfile(inspect.currentframe()))[0]))
@@ -21,11 +22,8 @@ def insertModule(ModuleFolder):
 insertModule('PandasCore')
 insertModule('Constants')
 insertModule('DataProviderAccess')
-import OZ
 import Constants
 import Oanda
-import IQData
-import logging
 
 write_table = "MyStockData"
 client = RiakClient(nodes=[{'host': Constants.RiakServer, 'http_port': Constants.RiakPort}],
@@ -61,46 +59,44 @@ def ShouldRefreshAll(Symbol):
     return not (Refreshed[Symbol])
 
 
-def FillUpToNow(Symbol, LastDF):
-    MyDF = LastDF.reset_index()
-    DayDiff = getToday().day - MyDF['Date'][0].day
+def fill_up_to_now(Symbol, last_df):
+    my_df = last_df.reset_index()
+    DayDiff = getToday().day - my_df['Date'][0].day
     if DayDiff > 4:
-        NewDF = OZ.generate_overlays_oz_pandas('1h', Symbol, numWeeksBack=200).dropna()
+        new_df = OZ.generate_overlays_oz_pandas('1h', Symbol, numWeeksBack=200).dropna()
     else:
-        NewDF = Oanda.get_intraday_pandas_dback(Symbol, Oanda.H1, max(DayDiff,
+        new_df = Oanda.get_intraday_pandas_dback(Symbol, Oanda.H1, max(DayDiff,
                                                                       1))  # get_intraday_pandas_dback(Symbol, 3600, max(DayDiff,1) )
-        NewDF['Symbol'] = Symbol
-        NewDF['qOpen'] = MyDF['qOpen'][0]
-        NewDF['qLo'] = MyDF['qLo'][0]
-        NewDF['qHi'] = MyDF['qHi'][0]
-        NewDF['mOpen'] = MyDF['mOpen'][0]
-        NewDF['mLo'] = MyDF['mLo'][0]
-        NewDF['mHi'] = MyDF['mHi'][0]
-        NewDF['wOpen'] = MyDF['wOpen'][0]
-        NewDF['wLo'] = MyDF['wLo'][0]
-        NewDF['wHi'] = MyDF['wHi'][0]
-    return NewDF
+        new_df['Symbol'] = Symbol
+        new_df['qOpen'] = my_df['qOpen'][0]
+        new_df['qLo'] = my_df['qLo'][0]
+        new_df['qHi'] = my_df['qHi'][0]
+        new_df['mOpen'] = my_df['mOpen'][0]
+        new_df['mLo'] = my_df['mLo'][0]
+        new_df['mHi'] = my_df['mHi'][0]
+        new_df['wOpen'] = my_df['wOpen'][0]
+        new_df['wLo'] = my_df['wLo'][0]
+        new_df['wHi'] = my_df['wHi'][0]
+    return new_df
 
 
-def refresh_SymbolFrame(Symbol):
-    DF = None
-    if ShouldRefreshAll(Symbol):
-        DF = OZ.generate_overlays_oz_pandas('1h', Symbol, numWeeksBack=200).dropna()
-        return DF
+def refresh_SymbolFrame(symbol):
+    df = None
+    if ShouldRefreshAll(symbol):
+        df = OZ.generate_overlays_oz_pandas('1h', symbol, numWeeksBack=200).dropna()
+        return df
 
     # LastDF = getLastDateFrame(Symbol)
     LastDF = None
     if not (LastDF is not None):
-        DF = OZ.generate_overlays_oz_pandas('1h', Symbol, numWeeksBack=200).dropna()
-        return DF
+        df = OZ.generate_overlays_oz_pandas('1h', symbol, numWeeksBack=200).dropna()
+        return df
 
     # DF=FillUpToNow(Symbol,LastDF)
-    return DF
+    return df
 
 
-def updateOZRiak(symbolList):
-    DFDict = {}
-    newAllDF = pd.DataFrame()
+def update_oz_riak(symbolList):
     for symbol in symbolList:
         print(symbol)
         DF = refresh_SymbolFrame(symbol)
