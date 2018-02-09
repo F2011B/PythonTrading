@@ -127,34 +127,49 @@ def calc_refresh(loop):
 def refresh(loop):
     DFFrames = pd.DataFrame()
     while True:
-        if refresh_event.is_set():
-            refresh_event.clear()
-            print('Refresh was sent')
-            DFFrames = RiakDataBaseAccess.updateOZRiak(symbolList)
+        DFFrames = check_for_refresh_event(DFFrames)
 
-        if add_event.is_set():
-            add_event.clear()
-            addSymb = add_event.data
-            print('Add')
-            print(addSymb)
-            update = False
-            for element in addSymb:
-                if not (element in symbolList):
-                    symbolList.append(element)
-                    update = True
+        DFFrames = check_for_add_event(DFFrames)
 
-            if update:
-                DFFrames = RiakDataBaseAccess.updateOZRiak(symbolList)
-
-        if send_event.is_set():
-            send_event.clear()
-            if len(DFFrames) == 0:
-                DFFrames = RiakDataBaseAccess.updateOZRiak(symbolList)
-                yield from q.put(DFFrames)
-            else:
-                yield from q.put(DFFrames)
+        DFFrames = yield from check_for_send_event(DFFrames)
         time.sleep(0.1)
         yield None
+
+
+def check_for_send_event(DFFrames):
+    if send_event.is_set():
+        send_event.clear()
+        if len(DFFrames) == 0:
+            DFFrames = RiakDataBaseAccess.updateOZRiak(symbolList)
+            yield from q.put(DFFrames)
+        else:
+            yield from q.put(DFFrames)
+    return DFFrames
+
+
+def check_for_add_event(DFFrames):
+    if add_event.is_set():
+        add_event.clear()
+        addSymb = add_event.data
+        print('Add')
+        print(addSymb)
+        update = False
+        for element in addSymb:
+            if not (element in symbolList):
+                symbolList.append(element)
+                update = True
+
+        if update:
+            DFFrames = RiakDataBaseAccess.updateOZRiak(symbolList)
+    return DFFrames
+
+
+def check_for_refresh_event(DFFrames):
+    if refresh_event.is_set():
+        refresh_event.clear()
+        print('Refresh was sent')
+        DFFrames = RiakDataBaseAccess.updateOZRiak(symbolList)
+    return DFFrames
 
 
 class MyTestCase(unittest.TestCase):
