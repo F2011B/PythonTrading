@@ -141,10 +141,8 @@ def check_for_send_event(DFFrames):
         send_event.clear()
         if len(DFFrames) == 0:
             DFFrames = RiakDataBaseAccess.updateOZRiak(symbolList)
-            yield from q.put(DFFrames)
-        else:
-            yield from q.put(DFFrames)
-    return DFFrames
+        yield from q.put(DFFrames)
+
 
 
 def check_for_add_event(DFFrames):
