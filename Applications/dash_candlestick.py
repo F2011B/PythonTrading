@@ -35,13 +35,13 @@ app.layout = html.Div([
                        'color': "rgba(117, 117, 117, 0.95)",
                        'margin-top': '20px',
                        'margin-bottom': '0'
-                        })#,
+                       })  # ,
         # html.Img(src="https://s3-us-west-1.amazonaws.com/plotly-tutorials/logo/new-branding/dash-logo-by-plotly-stripe.png",
         #         style={
         #             'height': '100px',
         #             'float': 'right'
         #         },
-        #),
+        # ),
     ]),
     dcc.Dropdown(
         id='stock-ticker-input',
@@ -53,15 +53,17 @@ app.layout = html.Div([
     html.Div(id='graphs')
 ], className="container")
 
+
 def bbands(price, window_size=10, num_of_std=5):
     rolling_mean = price.rolling(window=window_size).mean()
-    rolling_std  = price.rolling(window=window_size).std()
-    upper_band = rolling_mean + (rolling_std*num_of_std)
-    lower_band = rolling_mean - (rolling_std*num_of_std)
+    rolling_std = price.rolling(window=window_size).std()
+    upper_band = rolling_mean + (rolling_std * num_of_std)
+    lower_band = rolling_mean - (rolling_std * num_of_std)
     return rolling_mean, upper_band, lower_band
 
+
 @app.callback(
-    dash.dependencies.Output('graphs','children'),
+    dash.dependencies.Output('graphs', 'children'),
     [dash.dependencies.Input('stock-ticker-input', 'value')])
 def update_graph(tickers):
     graphs = []
@@ -93,7 +95,7 @@ def update_graph(tickers):
         bollinger_traces = [{
             'x': df.index, 'y': y,
             'type': 'scatter', 'mode': 'lines',
-            'line': {'width': 1, 'color': colorscale[(i*2) % len(colorscale)]},
+            'line': {'width': 1, 'color': colorscale[(i * 2) % len(colorscale)]},
             'hoverinfo': 'none',
             'legendgroup': ticker,
             'showlegend': True if i == 0 else False,
@@ -119,12 +121,10 @@ external_css = ["https://fonts.googleapis.com/css?family=Product+Sans:400,400i,7
 for css in external_css:
     app.css.append_css({"external_url": css})
 
-
 if 'DYNO' in os.environ:
     app.scripts.append_script({
         'external_url': 'https://cdn.rawgit.com/chriddyp/ca0d8f02a1659981a0ea7f013a378bbd/raw/e79f3f789517deec58f41251f7dbb6bee72c44ab/plotly_ga.js'
     })
 
-
 if __name__ == '__main__':
-    app.run_server(debug=True,port=5051)
+    app.run_server(debug=True, port=5051)

@@ -6,33 +6,29 @@ import sys
 import os
 import inspect
 
-
-
-
 cmd_folder = os.path.realpath(os.path.abspath(os.path.split(inspect.getfile(inspect.currentframe()))[0]))
 if cmd_folder not in sys.path:
     sys.path.insert(0, cmd_folder)
 
+
 def insertModule(ModuleFolder):
     cmd_subfolder = os.path.realpath(
-        os.path.abspath(os.path.join(os.path.split(inspect.getfile(inspect.currentframe()))[0],'..', ModuleFolder)))
+        os.path.abspath(os.path.join(os.path.split(inspect.getfile(inspect.currentframe()))[0], '..', ModuleFolder)))
     if cmd_subfolder not in sys.path:
         sys.path.insert(0, cmd_subfolder)
+
 
 insertModule('Constants')
 insertModule('DatabaseAccess')
 import Constants
 
-
 q = asyncio.Queue()
 add_event = asyncio.Event()
-kill_event =asyncio.Event()
+kill_event = asyncio.Event()
 delete_event = asyncio.Event()
-send_event =asyncio.Event()
+send_event = asyncio.Event()
 refresh_event = asyncio.Event()
-refreshed_event=asyncio.Event()
-
-
+refreshed_event = asyncio.Event()
 
 
 # Protocol should enable the service
@@ -43,6 +39,7 @@ refreshed_event=asyncio.Event()
 
 class SimpleEchoProtocol(asyncio.Protocol):
     TIMEOUT = 5.0
+
     def connection_made(self, transport):
         print("Connection received!")
         self.transport = transport
@@ -61,11 +58,10 @@ class SimpleEchoProtocol(asyncio.Protocol):
         message = data.decode()
         print(message)
         add_list = list()
-        for element in message.split('_End') :
+        for element in message.split('_End'):
             if 'Add' in element:
                 add_list.append(element.split('_')[1])
                 print(add_list)
-
 
             if len(add_list) > 0:
                 add_event.data = add_list
@@ -76,8 +72,6 @@ class SimpleEchoProtocol(asyncio.Protocol):
                 send_event.set()
                 fut = asyncio.async(q.get())
                 fut.add_done_callback(self.write_reply)
-
-
 
     def write_reply(self, fut):
         reply = fut.result().to_json()
@@ -92,11 +86,10 @@ class SimpleEchoProtocol(asyncio.Protocol):
         print('connection lost:', exc)
 
 
-
 @asyncio.coroutine
 def saveData(loop):
-    symbolList=['X','HD','LMT','BA']
-    DFFrames=pd.DataFrame()
+    symbolList = ['X', 'HD', 'LMT', 'BA']
+    DFFrames = pd.DataFrame()
     while True:
         if refresh_event.is_set():
             refresh_event.clear()
@@ -104,14 +97,14 @@ def saveData(loop):
 
         if add_event.is_set():
             add_event.clear()
-            addSymb= add_event.data
+            addSymb = add_event.data
             print('Add')
             print(addSymb)
-            update=False
+            update = False
             for element in addSymb:
                 if not (element in symbolList):
                     symbolList.append(element)
-                    update=True
+                    update = True
 
         if send_event.is_set():
             send_event.clear()
@@ -121,19 +114,14 @@ def saveData(loop):
                 yield from q.put(DFFrames)
         yield None
 
-def main():
 
+def main():
     loop = asyncio.get_event_loop()
     loop.create_task(saveData(loop))
     server = loop.create_server(SimpleEchoProtocol, 'localhost', 3333)
     loop.run_until_complete(server)
     loop.run_forever()
 
+
 if __name__ == "__main__":
     main()
-
-
-
-
-
-

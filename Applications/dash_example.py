@@ -23,6 +23,7 @@ app.layout = html.Div([
     dcc.Graph(id='my-graph')
 ], style={'width': '500'})
 
+
 @app.callback(Output('my-graph', 'figure'), [Input('my-dropdown', 'value')])
 def update_graph(selected_dropdown_value):
     df = web.DataReader(
@@ -39,9 +40,8 @@ def update_graph(selected_dropdown_value):
         'layout': {'margin': {'l': 40, 'r': 0, 't': 20, 'b': 30}}
     }
 
+
 app.css.append_css({'external_url': 'https://codepen.io/chriddyp/pen/bWLwgP.css'})
 
 if __name__ == '__main__':
     app.run_server()
-
-
