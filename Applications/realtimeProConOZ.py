@@ -125,34 +125,48 @@ def refresh(loop):
     symbolList = []  # ['X','HD','LMT','BA']
     DFFrames = pd.DataFrame()
     while True:
-        if refresh_event.is_set():
-            refresh_event.clear()
-            print('Refresh was sent')
-            DFFrames = calc_multipleSymbolFrames(symbolList)
+        DFFrames = check_for_refresh_event(DFFrames, symbolList)
 
-        if add_event.is_set():
-            add_event.clear()
-            addSymb = add_event.data
-            print('Add')
-            print(addSymb)
-            update = False
-            for element in addSymb:
-                if not (element in symbolList):
-                    symbolList.append(element)
-                    update = True
+        DFFrames = check_for_add_event(DFFrames, symbolList)
 
-            if update:
-                DFFrames = calc_multipleSymbolFrames(symbolList)
-
-        if send_event.is_set():
-            send_event.clear()
-            if len(DFFrames) == 0:
-                DFFrames = calc_multipleSymbolFrames(symbolList)
-                yield from q.put(DFFrames)
-            else:
-                yield from q.put(DFFrames)
+        yield from check_for_send_event(DFFrames, symbolList)
 
         yield None
+
+
+def check_for_send_event(DFFrames, symbolList):
+    if send_event.is_set():
+        send_event.clear()
+        if len(DFFrames) == 0:
+            DFFrames = calc_multipleSymbolFrames(symbolList)
+
+        yield from q.put(DFFrames)
+
+
+
+def check_for_add_event(DFFrames, symbolList):
+    if add_event.is_set():
+        add_event.clear()
+        addSymb = add_event.data
+        print('Add')
+        print(addSymb)
+        update = False
+        for element in addSymb:
+            if not (element in symbolList):
+                symbolList.append(element)
+                update = True
+
+        if update:
+            DFFrames = calc_multipleSymbolFrames(symbolList)
+    return DFFrames
+
+
+def check_for_refresh_event(DFFrames, symbolList):
+    if refresh_event.is_set():
+        refresh_event.clear()
+        print('Refresh was sent')
+        DFFrames = calc_multipleSymbolFrames(symbolList)
+    return DFFrames
 
 
 class MyTestCase(unittest.TestCase):
