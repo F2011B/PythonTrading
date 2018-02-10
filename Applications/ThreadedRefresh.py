@@ -34,10 +34,6 @@ cmd_folder = os.path.realpath(os.path.abspath(os.path.split(inspect.getfile(insp
 if cmd_folder not in sys.path:
     sys.path.insert(0, cmd_folder)
 
-
-
-
-
 insert_module('Constants')
 insert_module('DatabaseAccess')
 import Constants
