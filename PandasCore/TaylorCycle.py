@@ -33,7 +33,7 @@ def UsingDayGroupAsProxyDate(DF):
     return result.set_index('DateTime').sort_index()
 
 
-def AddAverages(DF):
+def add_averages(DF):
     DF['MO'] = DF['Open']
     DF['DHi'] = DF['High'] - DF['Open']
     # print(newDF['DHi'])
@@ -43,7 +43,7 @@ def AddAverages(DF):
     return DF
 
 
-def resampleToHourlyFrame(DF, TargetDF, TaylorDF):
+def resample_to_hourly_frame(DF, TargetDF, TaylorDF):
     DF.reset_index()
     testDF = DF.reset_index()
     testDF = testDF.append(testDF.tail(1))
@@ -63,7 +63,7 @@ def resampleToHourlyFrame(DF, TargetDF, TaylorDF):
     return ResultDF
 
 
-def CalcTaylorCycle(DF):
+def calc_taylor_cycle(DF):
     ohlc_dict = {
         'Open': 'first',
         'High': 'max',
@@ -81,14 +81,14 @@ def CalcTaylorCycle(DF):
 
     newDF = count3DayGroups(TaylorDF)
     newDF = UsingDayGroupAsProxyDate(newDF)
-    newDF = AddAverages(newDF)
+    newDF = add_averages(newDF)
 
-    return resampleToHourlyFrame(newDF, DF, TaylorDF)
+    return resample_to_hourly_frame(newDF, DF, TaylorDF)
 
 
 def main():
     DF = pd.read_hdf('/home/lc1bfrbl/Database/Oanda.hdf', 'WTICO_USD_H1')
-    TTT = CalcTaylorCycle(DF)
+    TTT = calc_taylor_cycle(DF)
     Index = (TTT.index.year == 2017) & (TTT.index.month == 6)
     TTT[Index].MO.plot()
     TTT[Index].MLo.plot()

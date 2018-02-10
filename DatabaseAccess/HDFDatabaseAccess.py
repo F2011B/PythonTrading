@@ -10,14 +10,14 @@ if cmd_folder not in sys.path:
 
 # use this if you want to include modules from a subfolder
 
-def insertModule(ModuleFolder):
+def insert_module(ModuleFolder):
     cmd_subfolder = os.path.realpath(
         os.path.abspath(os.path.join(os.path.split(inspect.getfile(inspect.currentframe()))[0], '..', ModuleFolder)))
     if cmd_subfolder not in sys.path:
         sys.path.insert(0, cmd_subfolder)
 
 
-insertModule('Constants')
+insert_module('Constants')
 import Constants
 
 

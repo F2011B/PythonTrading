@@ -15,18 +15,18 @@ BUFFER_SIZE = 4096
 intervalMap = {"3h": 10800, "1h": 3600, "1m": 60, "5m": 300, "15m": 900, "30m": 1800}
 
 
-def timeConverter(Raw):
+def time_converter(raw):
     encoding = 'utf-8'
-    TimeDate = datetime.datetime.strptime(Raw.decode(encoding), "%Y-%m-%d  %H:%M:%S")
+    time_date = datetime.datetime.strptime(raw.decode(encoding), "%Y-%m-%d  %H:%M:%S")
     #   print(TimeDate)
     # newFormat=TimeDate.year*10000+TimeDate.month*100+TimeDate.day+TimeDate.hour/100+TimeDate.minute/10000+TimeDate.second/1000000
     #    print(newFormat)
-    return TimeDate
+    return time_date
 
 
-def readIQCSV_pandas(fileName, Symbol):
-    fileName.seek(0)
-    data = readIQCSV(fileName, Symbol)
+def readIQCSV_pandas(file_name, symbol):
+    file_name.seek(0)
+    data = readIQCSV(file_name, symbol)
     # return pd.read_csv(fileName,header=None,parse_dates=['Date'],date_parser=timeConverter, names=['Date','High','Low','Open','Close','Volume','OI','Unamed'],)
     return pd.DataFrame(data)
 
@@ -38,16 +38,16 @@ def readIQCSV(fileName, Symbol):
                   ('Volume', 'd')]
     try:
         TempData = np.genfromtxt(io.BytesIO(fileName.getvalue().encode()), dtype=DataFormat, invalid_raise=False,
-                                 delimiter=',', converters={0: timeConverter})
+                                 delimiter=',', converters={0: time_converter})
     except:
         print('There was an error reading np.genfromtxt in: ' + Symbol)
     return TempData
 
 
-def getDataFromIQFeed(Message):
+def get_data_from_i_q_feed(message):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect((TCP_IP, TCP_PORT_History))
-    s.send(Message.encode('ascii'))
+    s.send(message.encode('ascii'))
 
     data = ''
     outputbuffer = StringIO()
@@ -65,12 +65,12 @@ def getDataFromIQFeed(Message):
 
 
 def get_history_IQ(MESSAGE, symbol):
-    ohlc = readIQCSV(getDataFromIQFeed(MESSAGE), symbol)
+    ohlc = readIQCSV(get_data_from_i_q_feed(MESSAGE), symbol)
     return ohlc
 
 
 def get_history_IQ_pandas(MESSAGE, symbol):
-    data = readIQCSV_pandas(getDataFromIQFeed(MESSAGE), symbol)
+    data = readIQCSV_pandas(get_data_from_i_q_feed(MESSAGE), symbol)
     data = data.set_index(pd.DatetimeIndex(data['Date']))
     return data
 

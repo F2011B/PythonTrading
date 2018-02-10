@@ -3,9 +3,9 @@ import numpy as np
 import pandas as panda
 import datetime
 
-intervalMap = {"3h": 10800, "1h": 3600, "1m": 60, "5m": 300, "15m": 900, "30m": 1800}
+interval_map = {"3h": 10800, "1h": 3600, "1m": 60, "5m": 300, "15m": 900, "30m": 1800}
 
-intervalMapPandas = {"3h": '180min', '1h': '60min', '1m': '1min',
+interval_map_pandas = {"3h": '180min', '1h': '60min', '1m': '1min',
                      '5m': '5min', '30m': '30min', '1d': '1d', '15m': '15min'}
 
 
@@ -192,7 +192,7 @@ def expand_weekly(w_date, w_series, date):
 def expand_weekly_pandas(w_date, w_series, target_tf):
     df = panda.DataFrame({'Date': w_date, 'Series': w_series})
     df = df.set_index(['Date'])
-    resampled_data = df.resample(intervalMapPandas[target_tf], fill_method='bfill')
+    resampled_data = df.resample(interval_map_pandas[target_tf], fill_method='bfill')
     return resampled_data['Series'], resampled_data.index
 
 
