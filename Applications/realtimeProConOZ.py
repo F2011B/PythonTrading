@@ -85,66 +85,63 @@ def calc_refresh(loop):
     while True:
         if datetime.datetime.today().weekday() == 5:
             refresh_event.set()
-    yield None
 
 
-def refresh_SymbolFrame(Symbol):
-    DFw = OZ.calc_oz_series_pandas(Symbol, numWeeksBack=20, averageTf='W')
-    DFw.rename(columns={'Open': 'wOpen', 'MLo': 'wLo', 'MHi': 'wHi'}, inplace=True)
-    DFm = OZ.calc_oz_series_pandas(Symbol, numWeeksBack=20, averageTf='M')
-    DFm = DFm.shift(1, freq='M').resample('W').bfill()
-    DFm.rename(columns={'Open': 'mOpen', 'MLo': 'mLo', 'MHi': 'mHi'}, inplace=True)
-    DFq = OZ.calc_oz_series_pandas(Symbol, numWeeksBack=20, averageTf='Q')
-    DFq.rename(columns={'Open': 'qOpen', 'MLo': 'qLo', 'MHi': 'qHi'}, inplace=True)
-    DFq = DFq.shift(1, freq='Q').resample('W').bfill()
-    DF = pd.concat([DFw['wOpen'], DFw['wLo'], DFw['wHi'],
-                    DFm['mOpen'], DFm['mLo'], DFm['mHi'],
-                    DFq['qOpen'], DFq['qLo'], DFq['qHi']],
-                   axis=1, join_axes=[DFw.index])
-    DF.reset_index
-    return DF
+def refresh_symbol_frame(symbol):
+    dfw = OZ.calc_oz_series_pandas(symbol, numWeeksBack=20, averageTf='W')
+    dfw.rename(columns={'Open': 'wOpen', 'MLo': 'wLo', 'MHi': 'wHi'}, inplace=True)
+    dfm = OZ.calc_oz_series_pandas(symbol, numWeeksBack=20, averageTf='M')
+    dfm = dfm.shift(1, freq='M').resample('W').bfill()
+    dfm.rename(columns={'Open': 'mOpen', 'MLo': 'mLo', 'MHi': 'mHi'}, inplace=True)
+    dfq = OZ.calc_oz_series_pandas(symbol, numWeeksBack=20, averageTf='Q')
+    dfq.rename(columns={'Open': 'qOpen', 'MLo': 'qLo', 'MHi': 'qHi'}, inplace=True)
+    dfq = dfq.shift(1, freq='Q').resample('W').bfill()
+    df = pd.concat([dfw['wOpen'], dfw['wLo'], dfw['wHi'],
+                    dfm['mOpen'], dfm['mLo'], dfm['mHi'],
+                    dfq['qOpen'], dfq['qLo'], dfq['qHi']],
+                   axis=1, join_axes=[dfw.index])
+    df.reset_index
+    return df
 
 
-def calc_multipleSymbolFrames(symbolList):
-    DFDict = {}
-    newAllDF = pd.DataFrame()
-    for symbol in symbolList:
+def calc_multiple_symbol_frames(symbol_list):
+    new_all_df = pd.DataFrame()
+    for symbol in symbol_list:
         print(symbol)
-        DF = refresh_SymbolFrame(symbol)
+        DF = refresh_symbol_frame(symbol)
         DF['SymbolName'] = symbol
-        newAllDF = newAllDF.append(DF)
-    newAllDF.reset_index(inplace=True)
-    newAllDF.rename(columns={'index': 'DateTime'}, inplace=True)
+        new_all_df = new_all_df.append(DF)
+    new_all_df.reset_index(inplace=True)
+    new_all_df.rename(columns={'index': 'DateTime'}, inplace=True)
     print('processed')
-    print(symbolList)
-    return newAllDF
+    print(symbol_list)
+    return new_all_df
 
 
 @asyncio.coroutine
 def refresh(loop):
     symbolList = []  # ['X','HD','LMT','BA']
-    DFFrames = pd.DataFrame()
+    df_frames = pd.DataFrame()
     while True:
-        DFFrames = check_for_refresh_event(DFFrames, symbolList)
+        df_frames = check_for_refresh_event(df_frames, symbolList)
 
-        DFFrames = check_for_add_event(DFFrames, symbolList)
+        df_frames = check_for_add_event(df_frames, symbolList)
 
-        yield from check_for_send_event(DFFrames, symbolList)
+        yield from check_for_send_event(df_frames, symbolList)
 
         yield None
 
 
-def check_for_send_event(DFFrames, symbolList):
+def check_for_send_event(df_frames, symbol_list):
     if send_event.is_set():
         send_event.clear()
-        if len(DFFrames) == 0:
-            DFFrames = calc_multipleSymbolFrames(symbolList)
+        if len(df_frames) == 0:
+            df_frames = calc_multiple_symbol_frames(symbol_list)
 
-        yield from q.put(DFFrames)
+        yield from q.put(df_frames)
 
 
-
-def check_for_add_event(DFFrames, symbolList):
+def check_for_add_event(df_frames, symbol_list):
     if add_event.is_set():
         add_event.clear()
         addSymb = add_event.data
@@ -152,52 +149,52 @@ def check_for_add_event(DFFrames, symbolList):
         print(addSymb)
         update = False
         for element in addSymb:
-            if not (element in symbolList):
-                symbolList.append(element)
+            if not (element in symbol_list):
+                symbol_list.append(element)
                 update = True
 
         if update:
-            DFFrames = calc_multipleSymbolFrames(symbolList)
-    return DFFrames
+            df_frames = calc_multiple_symbol_frames(symbol_list)
+    return df_frames
 
 
-def check_for_refresh_event(DFFrames, symbolList):
+def check_for_refresh_event(df_frames, symbol_list):
     if refresh_event.is_set():
         refresh_event.clear()
         print('Refresh was sent')
-        DFFrames = calc_multipleSymbolFrames(symbolList)
-    return DFFrames
+        df_frames = calc_multiple_symbol_frames(symbol_list)
+    return df_frames
 
 
-class MyTestCase(unittest.TestCase):
+class my_test_case(unittest.TestCase):
     def test_calc_multiple(self):
         symbolList = ['X', 'HD', 'LMT', 'BA']
-        DFFrames = calc_multipleSymbolFrames(symbolList)
+        df_frames = calc_multiple_symbol_frames(symbolList)
 
-        self.assertTrue('DateTime' in DFFrames.keys())
-        self.assertTrue('X' in DFFrames['SymbolName'].values)
-        self.assertTrue('HD' in DFFrames['SymbolName'].values)
-        self.assertTrue('LMT' in DFFrames['SymbolName'].values)
-        self.assertTrue('BA' in DFFrames['SymbolName'].values)
-        self.assertTrue(len(DFFrames) > 0)
+        self.assertTrue('DateTime' in df_frames.keys())
+        self.assertTrue('X' in df_frames['SymbolName'].values)
+        self.assertTrue('HD' in df_frames['SymbolName'].values)
+        self.assertTrue('LMT' in df_frames['SymbolName'].values)
+        self.assertTrue('BA' in df_frames['SymbolName'].values)
+        self.assertTrue(len(df_frames) > 0)
 
     def test_simple_frame(self):
-        SymbolDF = refresh_SymbolFrame('HD')
-        self.assertTrue('qHi' in SymbolDF.keys())
-        self.assertTrue('wHi' in SymbolDF.keys())
-        self.assertTrue('mHi' in SymbolDF.keys())
-        self.assertTrue('qOpen' in SymbolDF.keys())
-        self.assertTrue('wOpen' in SymbolDF.keys())
-        self.assertTrue('mOpen' in SymbolDF.keys())
-        self.assertTrue('qLo' in SymbolDF.keys())
-        self.assertTrue('wLo' in SymbolDF.keys())
-        self.assertTrue('mLo' in SymbolDF.keys())
-        self.assertTrue(len(SymbolDF) > 0)
+        symbol_df = refresh_symbol_frame('HD')
+        self.assertTrue('qHi' in symbol_df.keys())
+        self.assertTrue('wHi' in symbol_df.keys())
+        self.assertTrue('mHi' in symbol_df.keys())
+        self.assertTrue('qOpen' in symbol_df.keys())
+        self.assertTrue('wOpen' in symbol_df.keys())
+        self.assertTrue('mOpen' in symbol_df.keys())
+        self.assertTrue('qLo' in symbol_df.keys())
+        self.assertTrue('wLo' in symbol_df.keys())
+        self.assertTrue('mLo' in symbol_df.keys())
+        self.assertTrue(len(symbol_df) > 0)
 
     def test_generate_overlay_oz_pandas(self):
-        symbolList = ['X', 'HD', 'LMT', 'BA']
-        DFFrames = calc_multipleSymbolFrames(symbolList)
-        print(DFFrames.reset_index().to_json())
+        symbol_list = ['X', 'HD', 'LMT', 'BA']
+        df_frames = calc_multiple_symbol_frames(symbol_list)
+        print(df_frames.reset_index().to_json())
         # print(DFFrames.to_json())
         self.assertTrue(False)
 
