@@ -9,58 +9,58 @@ def setLogger(logger):
     Logger = logger
 
 
-def count3DayGroups(DF):
-    DF['DayGroup'] = 0
-    grouped = DF.groupby('DayNum')
-    DFList = list()
+def count3_day_groups(df):
+    df['DayGroup'] = 0
+    grouped = df.groupby('DayNum')
+    df_list = list()
     for i in range(3):
-        Temp = grouped.get_group(i).reset_index()
-        DFList.append(Temp)
-        DFList[i]['DayGroup'] = 1
-        DFList[i]['DayGroup'] = DFList[i]['DayGroup'].cumsum()
-    # print(DFList[0]['DayGroup'])
+        temp = grouped.get_group(i).reset_index()
+        df_list.append(temp)
+        df_list[i]['DayGroup'] = 1
+        df_list[i]['DayGroup'] = df_list[i]['DayGroup'].cumsum()
+    # print(df_list[0]['DayGroup'])
 
-    newDF = DFList[0][['DateTime', 'DayGroup']]
+    new_df = df_list[0][['DateTime', 'DayGroup']]
     for i in range(2):
-        newDF = newDF.append(DFList[i + 1][['DateTime', 'DayGroup']], ignore_index=True)
-    del (DF['DayGroup'])
-    return pd.concat([DF, newDF.set_index('DateTime').sort_index()], axis=1, join_axes=[DF.index])
+        new_df = new_df.append(df_list[i + 1][['DateTime', 'DayGroup']], ignore_index=True)
+    del (df['DayGroup'])
+    return pd.concat([df, new_df.set_index('DateTime').sort_index()], axis=1, join_axes=[df.index])
 
 
-def UsingDayGroupAsProxyDate(DF):
-    result = DF.reset_index().groupby('DayGroup').agg(
+def UsingDayGroupAsProxyDate(df):
+    result = df.reset_index().groupby('DayGroup').agg(
         {'DateTime': 'first', 'Open': 'first', 'High': 'max', 'Low': 'min', 'Close': 'last'})
     return result.set_index('DateTime').sort_index()
 
 
-def add_averages(DF):
-    DF['MO'] = DF['Open']
-    DF['DHi'] = DF['High'] - DF['Open']
+def add_averages(df):
+    df['MO'] = df['Open']
+    df['DHi'] = df['High'] - df['Open']
     # print(newDF['DHi'])
-    DF['DLo'] = DF['Low'] - DF['Open']
-    DF['MLo'] = DF['Open'] + DF['DLo'].rolling(window=10).mean().shift(1)
-    DF['MHi'] = DF['Open'] + DF['DHi'].rolling(window=10).mean().shift(1)
-    return DF
+    df['DLo'] = df['Low'] - df['Open']
+    df['MLo'] = df['Open'] + df['DLo'].rolling(window=10).mean().shift(1)
+    df['MHi'] = df['Open'] + df['DHi'].rolling(window=10).mean().shift(1)
+    return df
 
 
-def resample_to_hourly_frame(DF, TargetDF, TaylorDF):
-    DF.reset_index()
-    testDF = DF.reset_index()
-    testDF = testDF.append(testDF.tail(1))
-    testDF = testDF.reset_index()
-    testDF.set_value(len(testDF) - 1, 'DateTime',
-                     testDF.iloc[len(testDF) - 1].DateTime + testDF.DateTime.diff().iloc[-3])
-    testDF[['MO', 'MLo', 'MHi']] = testDF[['MO', 'MLo', 'MHi']].shift(1)
-    testDF.set_index('DateTime', inplace=True)
-    resampled = testDF.resample('60min').bfill()
-    ResultDF = pd.concat([TargetDF, resampled[['MO', 'MLo', 'MHi']]], axis=1, join_axes=[TargetDF.index])
-    TaylorDF['Date'] = pd.to_datetime(TaylorDF.index.date)
-    ResultDF['Date'] = pd.to_datetime(ResultDF.index.date)
-    TaylorDF = TaylorDF.reset_index().set_index('Date')
-    ResultDF = ResultDF.reset_index().set_index('Date')
-    ResultDF['TaylorDay'] = TaylorDF['DayNum']
-    ResultDF = ResultDF.reset_index().set_index('DateTime')
-    return ResultDF
+def resample_to_hourly_frame(df, target_df, taylor_df):
+    df.reset_index()
+    test_df = df.reset_index()
+    test_df = test_df.append(test_df.tail(1))
+    test_df = test_df.reset_index()
+    test_df.set_value(len(test_df) - 1, 'DateTime',
+                     test_df.iloc[len(test_df) - 1].DateTime + test_df.DateTime.diff().iloc[-3])
+    test_df[['MO', 'MLo', 'MHi']] = test_df[['MO', 'MLo', 'MHi']].shift(1)
+    test_df.set_index('DateTime', inplace=True)
+    resampled = test_df.resample('60min').bfill()
+    result_df = pd.concat([target_df, resampled[['MO', 'MLo', 'MHi']]], axis=1, join_axes=[target_df.index])
+    taylor_df['Date'] = pd.to_datetime(taylor_df.index.date)
+    result_df['Date'] = pd.to_datetime(result_df.index.date)
+    taylor_df = taylor_df.reset_index().set_index('Date')
+    result_df = result_df.reset_index().set_index('Date')
+    result_df['TaylorDay'] = taylor_df['DayNum']
+    result_df = result_df.reset_index().set_index('DateTime')
+    return result_df
 
 
 def calc_taylor_cycle(DF):
@@ -73,28 +73,28 @@ def calc_taylor_cycle(DF):
         # 'closeBid': 'last',
         # 'Volume': 'sum'
     }
-    ResampledData = DF[['Open', 'High', 'Low', 'Close']].resample('1D', closed='left', label='left', how=ohlc_dict)
+    resampled_data = DF[['Open', 'High', 'Low', 'Close']].resample('1D', closed='left', label='left', how=ohlc_dict)
 
-    TaylorDF = ResampledData.dropna()
-    TaylorDF['Day'] = 1
-    TaylorDF['DayNum'] = TaylorDF.Day.cumsum().mod(3)
+    taylor_df = resampled_data.dropna()
+    taylor_df['Day'] = 1
+    taylor_df['DayNum'] = taylor_df.Day.cumsum().mod(3)
 
-    newDF = count3DayGroups(TaylorDF)
-    newDF = UsingDayGroupAsProxyDate(newDF)
-    newDF = add_averages(newDF)
+    new_df = count3_day_groups(taylor_df)
+    new_df = UsingDayGroupAsProxyDate(new_df)
+    new_df = add_averages(new_df)
 
-    return resample_to_hourly_frame(newDF, DF, TaylorDF)
+    return resample_to_hourly_frame(new_df, DF, taylor_df)
 
 
 def main():
-    DF = pd.read_hdf('/home/lc1bfrbl/Database/Oanda.hdf', 'WTICO_USD_H1')
-    TTT = calc_taylor_cycle(DF)
-    Index = (TTT.index.year == 2017) & (TTT.index.month == 6)
-    TTT[Index].MO.plot()
-    TTT[Index].MLo.plot()
-    TTT[Index].MHi.plot()
-    TTT[Index].High.plot()
-    TTT[Index].Low.plot()
+    df = pd.read_hdf('/home/lc1bfrbl/Database/Oanda.hdf', 'WTICO_USD_H1')
+    ttt = calc_taylor_cycle(df)
+    index = (ttt.index.year == 2017) & (ttt.index.month == 6)
+    ttt[index].MO.plot()
+    ttt[index].MLo.plot()
+    ttt[index].MHi.plot()
+    ttt[index].High.plot()
+    ttt[index].Low.plot()
 
 
 if __name__ == "__main__":
